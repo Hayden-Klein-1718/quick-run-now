@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronDown } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, X } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
-  const [selectedGroup, setSelectedGroup] = useState("Friends");
-  const [selectedChallenge, setSelectedChallenge] = useState("Screen Time");
-  const [selectedDuration, setSelectedDuration] = useState("1 Week");
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const TabContent = () => {
     switch (activeTab) {
@@ -28,78 +27,164 @@ const IOSMockup = () => {
   };
 
   const HomeTab = () => {
-    const groups = ["Friends", "Family", "Work"];
-    const challenges = ["Steps", "Energy", "Screen Time"];
-    const durations = ["1 Week", "2 Weeks", "1 Month"];
+    const groups = [
+      { name: "Friends", icon: "👥", members: 8 },
+      { name: "Family", icon: "👨‍👩‍👧‍👦", members: 5 },
+      { name: "Work", icon: "💼", members: 12 },
+    ];
 
-    const toggleDropdown = (dropdown: string) => {
-      setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+    const leaderboardData = {
+      Friends: [
+        { id: 1, name: "Jake H.", time: 15.2, rank: 1, improvement: -30, avatar: "🟢" },
+        { id: 2, name: "You", time: 18.5, rank: 2, improvement: -24, avatar: "🔵" },
+        { id: 3, name: "Sarah M.", time: 22.7, rank: 3, improvement: 17, avatar: "🟣" },
+        { id: 4, name: "Mike T.", time: 25.3, rank: 4, improvement: -6, avatar: "🟠" },
+        { id: 5, name: "Emma L.", time: 28.1, rank: 5, improvement: 9, avatar: "🟡" },
+      ],
+      Family: [
+        { id: 1, name: "You", time: 18.5, rank: 1, improvement: -24, avatar: "🔵" },
+        { id: 2, name: "Mom", time: 22.3, rank: 2, improvement: -12, avatar: "💚" },
+        { id: 3, name: "Dad", time: 25.8, rank: 3, improvement: 5, avatar: "💙" },
+        { id: 4, name: "Sister", time: 31.2, rank: 4, improvement: -8, avatar: "💜" },
+      ],
+      Work: [
+        { id: 1, name: "Alex K.", time: 12.4, rank: 1, improvement: -35, avatar: "🟢" },
+        { id: 2, name: "Chris P.", time: 16.8, rank: 2, improvement: -28, avatar: "🟠" },
+        { id: 3, name: "You", time: 18.5, rank: 3, improvement: -24, avatar: "🔵" },
+        { id: 4, name: "Taylor B.", time: 21.9, rank: 4, improvement: -15, avatar: "🟣" },
+        { id: 5, name: "Jordan S.", time: 24.2, rank: 5, improvement: 8, avatar: "🟡" },
+      ],
     };
 
-    const Selector = ({
-      label,
-      value,
-      options,
-      dropdownId,
-      onSelect,
-    }: {
-      label: string;
-      value: string;
-      options: string[];
-      dropdownId: string;
-      onSelect: (option: string) => void;
-    }) => (
-      <div className="relative">
-        <button
-          onClick={() => toggleDropdown(dropdownId)}
-          className="w-full glass-card rounded-[20px] px-6 py-4 flex items-center justify-between hover:scale-[1.02] transition-transform"
-        >
-          <div className="text-left">
-            <p className="text-xs text-muted-foreground mb-1">{label}</p>
-            <p className="text-lg font-bold text-foreground">{value}</p>
-          </div>
-          <ChevronDown
-            className={`w-5 h-5 text-[#1E90FF] transition-transform ${
-              openDropdown === dropdownId ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+    const handleGroupSelect = (groupName: string) => {
+      setSelectedGroup(groupName);
+      setShowGroupSelector(false);
+      setShowLeaderboard(true);
+    };
 
-        {openDropdown === dropdownId && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setOpenDropdown(null)}
-            />
-            <div className="absolute top-full mt-2 left-0 right-0 z-50 glass-card rounded-[20px] overflow-hidden shadow-xl bg-background dark:bg-card">
-              {options.map((option) => (
+    const GroupSelector = () => (
+      <div className="fixed inset-0 z-50 flex items-end animate-in fade-in duration-300">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowGroupSelector(false)}
+        />
+        <div className="relative w-full glass-card rounded-t-[30px] p-6 pb-10 animate-in slide-in-from-bottom duration-300 bg-background dark:bg-card">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-foreground">Select Group</h2>
+            <button
+              onClick={() => setShowGroupSelector(false)}
+              className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+            >
+              <X className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {groups.map((group) => (
+              <button
+                key={group.name}
+                onClick={() => handleGroupSelect(group.name)}
+                className="w-full glass-card rounded-[20px] p-5 flex items-center justify-between hover:scale-[1.02] transition-transform bg-background dark:bg-card"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">{group.icon}</span>
+                  <div className="text-left">
+                    <p className="text-lg font-bold text-foreground">{group.name}</p>
+                    <p className="text-sm text-muted-foreground">{group.members} members</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#1E90FF]" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    const Leaderboard = () => {
+      if (!selectedGroup) return null;
+      const data = leaderboardData[selectedGroup as keyof typeof leaderboardData];
+
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col animate-in fade-in duration-300 bg-background">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <button
+              onClick={() => {
+                setShowLeaderboard(false);
+                setSelectedGroup(null);
+              }}
+              className="text-[#1E90FF] font-semibold"
+            >
+              ← Back
+            </button>
+            <h2 className="text-xl font-bold text-foreground">{selectedGroup} Leaderboard</h2>
+            <div className="w-12" />
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+            {/* Your Stats Card - Always Visible */}
+            <div className="glass-card rounded-[20px] p-6 mb-6 bg-gradient-to-br from-[#1E90FF] to-[#4169E1]">
+              <div className="text-left">
+                <p className="text-sm text-white/80 mb-2">Your Screen Time</p>
+                <p className="text-5xl font-bold text-white mb-2">18.5h</p>
+                <p className="text-sm text-white/90 font-semibold">↓ 24% this week</p>
+              </div>
+            </div>
+
+            <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Rankings</h3>
+            
+            <div className="space-y-3">
+              {data.map((person) => (
                 <button
-                  key={option}
-                  onClick={() => {
-                    onSelect(option);
-                    setOpenDropdown(null);
-                  }}
-                  className={`w-full px-6 py-4 text-left transition-colors ${
-                    value === option
-                      ? "bg-[#1E90FF] text-white font-semibold"
-                      : "hover:bg-muted text-foreground"
+                  key={person.id}
+                  className={`w-full glass-card rounded-[20px] p-5 transition-transform hover:scale-[1.02] ${
+                    person.name === "You"
+                      ? "bg-gradient-to-br from-[#1E90FF]/20 to-[#4169E1]/20 border-2 border-[#1E90FF]"
+                      : "bg-background dark:bg-card"
                   }`}
                 >
-                  {option}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col items-center">
+                        <span className="text-3xl mb-1">{person.avatar}</span>
+                        <span className="text-xs font-bold text-muted-foreground">#{person.rank}</span>
+                      </div>
+                      <div className="text-left">
+                        <p className={`font-bold text-lg ${person.name === "You" ? "text-[#1E90FF]" : "text-foreground"}`}>
+                          {person.name}
+                        </p>
+                        <p className={`text-sm font-semibold ${
+                          person.improvement < 0 ? "text-green-500" : "text-red-500"
+                        }`}>
+                          {person.improvement < 0 ? "↓" : "↑"} {Math.abs(person.improvement)}% vs last week
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold text-foreground">{person.time}h</p>
+                      {person.name === "You" && (
+                        <p className="text-xs text-[#1E90FF] font-semibold mt-1">Your time</p>
+                      )}
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
-          </>
-        )}
-      </div>
-    );
+          </div>
+        </div>
+      );
+    };
 
     return (
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
         {/* Your Stats - Always Visible */}
         <div className="mb-6">
           <h2 className="text-sm text-muted-foreground mb-3">Your Stats</h2>
-          <div className="glass-card rounded-[20px] p-6">
+          
+          <button
+            onClick={() => setShowGroupSelector(true)}
+            className="w-full glass-card rounded-[20px] p-6 hover:scale-[1.02] transition-transform"
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="text-left">
                 <p className="text-sm text-muted-foreground">Current Challenge</p>
@@ -110,10 +195,11 @@ const IOSMockup = () => {
                 <p className="text-3xl font-bold text-[#1E90FF]">#2</p>
               </div>
             </div>
-            <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10">
+            <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10 flex items-center justify-between">
               <p className="text-sm text-foreground">3 days left • $250 pot</p>
+              <ChevronRight className="w-5 h-5 text-[#1E90FF]" />
             </div>
-          </div>
+          </button>
 
           <div className="glass-card rounded-[20px] p-6 mt-4">
             <div className="text-left mb-3">
@@ -124,38 +210,8 @@ const IOSMockup = () => {
           </div>
         </div>
 
-        {/* Selectors */}
-        <div className="space-y-4">
-          <h2 className="text-sm text-muted-foreground mb-3">Create New Challenge</h2>
-          
-          <Selector
-            label="Group"
-            value={selectedGroup}
-            options={groups}
-            dropdownId="group"
-            onSelect={setSelectedGroup}
-          />
-
-          <Selector
-            label="Challenge Type"
-            value={selectedChallenge}
-            options={challenges}
-            dropdownId="challenge"
-            onSelect={setSelectedChallenge}
-          />
-
-          <Selector
-            label="Duration"
-            value={selectedDuration}
-            options={durations}
-            dropdownId="duration"
-            onSelect={setSelectedDuration}
-          />
-
-          <button className="w-full bg-gradient-to-r from-[#1E90FF] to-[#4169E1] text-white font-bold py-4 rounded-[20px] shadow-lg hover:scale-[1.02] transition-transform mt-6">
-            Start Challenge
-          </button>
-        </div>
+        {showGroupSelector && <GroupSelector />}
+        {showLeaderboard && <Leaderboard />}
       </div>
     );
   };
