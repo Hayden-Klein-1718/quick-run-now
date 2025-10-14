@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { MessageCircle, Users, Target, Home, BarChart3, User, ChevronRight, Zap, Plus, Bell } from "lucide-react";
+import { MessageCircle, Users, Target, Home, BarChart3, User, ChevronRight, Zap, Plus, Bell, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 const IOSMockup = () => {
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
   const [showAppSettings, setShowAppSettings] = useState(false);
   const [showDetailedStats, setShowDetailedStats] = useState(false);
@@ -179,7 +181,7 @@ const IOSMockup = () => {
                 className={`min-w-[280px] rounded-3xl p-4 shadow-md transition-all ${
                   selectedPool === idx
                     ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white scale-105'
-                    : 'bg-white border-2 border-gray-200'
+                    : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="text-left mb-3">
@@ -268,7 +270,7 @@ const IOSMockup = () => {
                 className={`w-full rounded-3xl p-5 shadow-lg ${
                   friend.isWinning
                     ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                    : 'bg-white border-2 border-gray-100'
+                    : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -348,7 +350,7 @@ const IOSMockup = () => {
             <h1 className="text-3xl font-bold">{currentPool.name}</h1>
             <p className="text-gray-500 text-sm mt-1">Group Chat</p>
           </div>
-          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
             <Bell className="w-5 h-5" />
           </button>
         </div>
@@ -359,7 +361,7 @@ const IOSMockup = () => {
           <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">J</div>
           <div className="flex-1">
             <p className="text-xs text-gray-500 mb-1">Jake H. • 2h ago</p>
-            <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm p-4">
               <p className="text-sm">Lets go! Whos ready to lock in this week? 💪</p>
             </div>
           </div>
@@ -379,7 +381,7 @@ const IOSMockup = () => {
           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">E</div>
           <div className="flex-1">
             <p className="text-xs text-gray-500 mb-1">Ethan S. • 45m ago</p>
-            <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm p-4">
               <p className="text-sm">Andrew slipping already lol</p>
             </div>
           </div>
@@ -389,7 +391,7 @@ const IOSMockup = () => {
           <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold">A</div>
           <div className="flex-1">
             <p className="text-xs text-gray-500 mb-1">Andrew B. • 30m ago</p>
-            <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm p-4">
               <p className="text-sm">Its only Wednesday, just wait 😤</p>
             </div>
           </div>
@@ -399,19 +401,19 @@ const IOSMockup = () => {
           <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">J</div>
           <div className="flex-1">
             <p className="text-xs text-gray-500 mb-1">Jake H. • 20m ago</p>
-            <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-tl-sm p-4">
               <p className="text-sm">Andrew on TikTok for 9 hours 😂 Bro needs help</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-4 border-t border-gray-200 pb-24">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 pb-24">
         <div className="flex gap-2">
           <input
             type="text"
             placeholder="Message..."
-            className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm outline-none"
+            className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full px-5 py-3 text-sm outline-none"
           />
           <button className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
             ↑
@@ -434,7 +436,7 @@ const IOSMockup = () => {
             <h1 className="text-3xl font-bold">Settings</h1>
             <p className="text-gray-500 text-sm mt-1">Manage pool settings</p>
           </div>
-          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
             <Bell className="w-5 h-5" />
           </button>
         </div>
@@ -443,18 +445,18 @@ const IOSMockup = () => {
       <div className="px-6 pb-6">
         <div className="space-y-4">
           {/* Pool Selector for Settings */}
-          <div className="bg-white rounded-3xl p-4 shadow-md">
-            <p className="text-sm text-gray-500 mb-3">Currently Managing</p>
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-md">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Currently Managing</p>
             <div className="space-y-2">
               {pools.map((pool, idx) => (
                 <button
                   key={pool.id}
                   onClick={() => setSelectedPool(idx)}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
-                    selectedPool === idx
-                      ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
-                      : 'bg-gray-50 hover:bg-gray-100'
-                  }`}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
+                      selectedPool === idx
+                        ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+                        : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{pool.name.split(' ')[pool.name.split(' ').length - 1]}</span>
@@ -492,14 +494,14 @@ const IOSMockup = () => {
             <ChevronRight className="w-6 h-6 text-gray-400" />
           </button>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg">Apps Everyone Tracks</h3>
               <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
                 Group Setting
               </span>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               All {currentPool.participants} players in {currentPool.name} track these apps for fair competition
             </p>
             <div className="flex flex-wrap gap-2">
@@ -520,14 +522,14 @@ const IOSMockup = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <h3 className="font-bold text-lg mb-4">Privacy</h3>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">👀</span>
                 <div>
                   <p className="font-semibold">Share App Usage</p>
-                  <p className="text-sm text-gray-500">Let friends see your apps</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Let friends see your apps</p>
                 </div>
               </div>
               <div className="w-12 h-7 bg-purple-600 rounded-full flex items-center justify-end px-1">
@@ -536,7 +538,30 @@ const IOSMockup = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
+            <h3 className="font-bold text-lg mb-4">Appearance</h3>
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl mb-4">
+              <div className="flex items-center gap-3">
+                {theme === "dark" ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+                <div>
+                  <p className="font-semibold">Dark Mode</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {theme === "dark" ? "Enabled" : "Disabled"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className={`w-12 h-7 rounded-full flex items-center px-1 transition-colors ${
+                  theme === "dark" ? "bg-purple-600 justify-end" : "bg-gray-300 justify-start"
+                }`}
+              >
+                <div className="w-5 h-5 bg-white rounded-full"></div>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <h3 className="font-bold text-lg mb-4">Notifications</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -553,7 +578,7 @@ const IOSMockup = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Weekly Reminders</span>
-                <div className="w-12 h-7 bg-gray-300 rounded-full flex items-center px-1">
+                <div className="w-12 h-7 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center px-1">
                   <div className="w-5 h-5 bg-white rounded-full"></div>
                 </div>
               </div>
@@ -577,7 +602,7 @@ const IOSMockup = () => {
             <h1 className="text-3xl font-bold">Your Profile</h1>
             <p className="text-gray-500 text-sm mt-1">Track your progress</p>
           </div>
-          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
             <Bell className="w-5 h-5" />
           </button>
         </div>
@@ -608,7 +633,7 @@ const IOSMockup = () => {
             </div>
           </button>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <h3 className="font-bold text-lg mb-4">Your Stats</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-purple-50 rounded-2xl p-4 text-center">
@@ -630,7 +655,7 @@ const IOSMockup = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <h3 className="font-bold text-lg mb-4">Achievements 🏆</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-2xl border border-yellow-200">
@@ -657,18 +682,18 @@ const IOSMockup = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-md">
             <h3 className="font-bold text-lg mb-4">Account</h3>
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+              <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
                 <span className="font-medium">Edit Profile</span>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </button>
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+              <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
                 <span className="font-medium">Payment Methods</span>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </button>
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+              <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
                 <span className="font-medium text-red-600">Sign Out</span>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </button>
@@ -681,15 +706,15 @@ const IOSMockup = () => {
 
   const AppSettingsModal = () => (
     <div className="absolute inset-0 bg-black/50 z-50 flex items-end">
-      <div className="w-full bg-white rounded-t-[40px] max-h-[80%] overflow-hidden flex flex-col">
-        <div className="px-6 pt-6 pb-4 border-b">
+      <div className="w-full bg-white dark:bg-gray-900 rounded-t-[40px] max-h-[80%] overflow-hidden flex flex-col">
+        <div className="px-6 pt-6 pb-4 border-b dark:border-gray-700">
           <div className="flex justify-between mb-2">
             <h2 className="text-2xl font-bold">Group Tracked Apps</h2>
-            <button onClick={() => setShowAppSettings(false)} className="w-8 h-8 rounded-full bg-gray-100">✕</button>
+            <button onClick={() => setShowAppSettings(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700">✕</button>
           </div>
-          <p className="text-sm text-gray-500 mb-2">
-            {trackedApps.length} apps selected for {currentPool.name}
-          </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              {trackedApps.length} apps selected for {currentPool.name}
+            </p>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
             <p className="text-xs text-blue-800">
               <strong>👥 Group Setting:</strong> All {currentPool.participants} players track these apps for fair competition
@@ -705,7 +730,7 @@ const IOSMockup = () => {
                   key={app.name}
                   onClick={() => toggleApp(app.name)}
                   className={`w-full flex justify-between p-4 rounded-2xl mb-2 ${
-                    trackedApps.includes(app.name) ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50'
+                    trackedApps.includes(app.name) ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500' : 'bg-gray-50 dark:bg-gray-700'
                   }`}
                 >
                   <div className="flex gap-3">
@@ -718,7 +743,7 @@ const IOSMockup = () => {
             </div>
           ))}
         </div>
-        <div className="p-6 border-t pb-8">
+        <div className="p-6 border-t dark:border-gray-700 pb-8">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4">
             <p className="text-xs text-yellow-800">
               ⚠️ Changes apply to all players in this pool immediately
@@ -734,11 +759,11 @@ const IOSMockup = () => {
 
   const DetailedStatsModal = () => (
     <div className="absolute inset-0 bg-black/50 z-50 flex items-end">
-      <div className="w-full bg-white rounded-t-[40px] max-h-[85%] overflow-hidden flex flex-col">
-        <div className="px-6 pt-6 pb-4 border-b">
+      <div className="w-full bg-white dark:bg-gray-900 rounded-t-[40px] max-h-[85%] overflow-hidden flex flex-col">
+        <div className="px-6 pt-6 pb-4 border-b dark:border-gray-700">
           <div className="flex justify-between mb-2">
             <h2 className="text-2xl font-bold">Your Stats</h2>
-            <button onClick={() => setShowDetailedStats(false)} className="w-8 h-8 rounded-full bg-gray-100">✕</button>
+            <button onClick={() => setShowDetailedStats(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700">✕</button>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
@@ -747,7 +772,7 @@ const IOSMockup = () => {
             <p className="text-white/80">Total Screen Time</p>
           </div>
           {mockUserData.apps.map((app, idx) => (
-            <div key={idx} className="bg-gray-50 rounded-2xl p-4 mb-3">
+            <div key={idx} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 mb-3">
               <div className="flex justify-between">
                 <div className="flex gap-3">
                   <span className="text-3xl">{app.icon}</span>
@@ -768,11 +793,11 @@ const IOSMockup = () => {
     
     return (
       <div className="absolute inset-0 bg-black/50 z-50 flex items-end">
-        <div className="w-full bg-white rounded-t-[40px] max-h-[85%] overflow-hidden flex flex-col">
-          <div className="px-6 pt-6 pb-4 border-b">
+        <div className="w-full bg-white dark:bg-gray-900 rounded-t-[40px] max-h-[85%] overflow-hidden flex flex-col">
+          <div className="px-6 pt-6 pb-4 border-b dark:border-gray-700">
             <div className="flex justify-between mb-2">
               <h2 className="text-2xl font-bold">{friend.name}</h2>
-              <button onClick={() => setShowFriendDetail(null)} className="w-8 h-8 rounded-full bg-gray-100">✕</button>
+              <button onClick={() => setShowFriendDetail(null)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700">✕</button>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-6">
@@ -784,7 +809,7 @@ const IOSMockup = () => {
               <div>
                 <h3 className="font-bold text-lg mb-3">App Breakdown 👀</h3>
                 {friend.apps.map((app, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-2xl p-4 mb-3">
+                  <div key={idx} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 mb-3">
                     <div className="flex justify-between">
                       <div className="flex gap-3">
                         <span className="text-3xl">{app.icon}</span>
@@ -802,7 +827,7 @@ const IOSMockup = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center">
+              <div className="bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center">
                 <p className="text-4xl mb-3">🔒</p>
                 <p className="font-semibold text-lg">Private Stats</p>
               </div>
@@ -823,9 +848,9 @@ const IOSMockup = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-8">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 p-8">
       <div className="w-[390px] h-[844px] bg-black rounded-[60px] p-3 shadow-2xl">
-        <div className="w-full h-full bg-white rounded-[48px] overflow-hidden flex flex-col relative">
+        <div className="w-full h-full bg-white dark:bg-gray-900 rounded-[48px] overflow-hidden flex flex-col relative">
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-50"></div>
 
           {showSplash ? (
@@ -841,7 +866,7 @@ const IOSMockup = () => {
               {showDetailedStats && <DetailedStatsModal />}
               {showFriendDetail && <FriendDetailModal />}
 
-              <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t">
+              <div className="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t dark:border-gray-700">
                 <div className="flex justify-around px-6 py-3 pb-6">
                   <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center gap-1 ${activeTab === "home" ? "text-purple-600" : "text-gray-400"}`}>
                     <Home className="w-6 h-6" />
