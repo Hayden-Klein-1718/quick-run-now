@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
+  const [selectedGroup, setSelectedGroup] = useState("Friends");
+  const [selectedChallenge, setSelectedChallenge] = useState("Screen Time");
+  const [selectedDuration, setSelectedDuration] = useState("1 Week");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const TabContent = () => {
     switch (activeTab) {
@@ -23,45 +27,138 @@ const IOSMockup = () => {
     }
   };
 
-  const HomeTab = () => (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-      <div className="mb-8">
-        <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-[#1E90FF] to-[#4169E1] rounded-[20px] flex items-center justify-center shadow-lg">
-          <span className="text-5xl">📱</span>
-        </div>
-        <h1 className="text-4xl font-bold mb-3 text-foreground">LEUTH</h1>
-        <p className="text-xl text-muted-foreground font-medium">
-          Compete. Reduce. Win.
-        </p>
-      </div>
+  const HomeTab = () => {
+    const groups = ["Friends", "Family", "Work"];
+    const challenges = ["Steps", "Energy", "Screen Time"];
+    const durations = ["1 Week", "2 Weeks", "1 Month"];
 
-      <div className="w-full max-w-sm space-y-4">
-        <div className="glass-card rounded-[20px] p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-left">
-              <p className="text-sm text-muted-foreground">Current Challenge</p>
-              <p className="text-2xl font-bold text-foreground">The Squad 💪</p>
+    const toggleDropdown = (dropdown: string) => {
+      setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+    };
+
+    const Selector = ({
+      label,
+      value,
+      options,
+      dropdownId,
+      onSelect,
+    }: {
+      label: string;
+      value: string;
+      options: string[];
+      dropdownId: string;
+      onSelect: (option: string) => void;
+    }) => (
+      <div className="relative">
+        <button
+          onClick={() => toggleDropdown(dropdownId)}
+          className="w-full glass-card rounded-[20px] px-6 py-4 flex items-center justify-between hover:scale-[1.02] transition-transform"
+        >
+          <div className="text-left">
+            <p className="text-xs text-muted-foreground mb-1">{label}</p>
+            <p className="text-lg font-bold text-foreground">{value}</p>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-[#1E90FF] transition-transform ${
+              openDropdown === dropdownId ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {openDropdown === dropdownId && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpenDropdown(null)}
+            />
+            <div className="absolute top-full mt-2 left-0 right-0 z-50 glass-card rounded-[20px] overflow-hidden shadow-xl bg-background dark:bg-card">
+              {options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => {
+                    onSelect(option);
+                    setOpenDropdown(null);
+                  }}
+                  className={`w-full px-6 py-4 text-left transition-colors ${
+                    value === option
+                      ? "bg-[#1E90FF] text-white font-semibold"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Your Rank</p>
-              <p className="text-3xl font-bold text-[#1E90FF]">#2</p>
+          </>
+        )}
+      </div>
+    );
+
+    return (
+      <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
+        {/* Your Stats - Always Visible */}
+        <div className="mb-6">
+          <h2 className="text-sm text-muted-foreground mb-3">Your Stats</h2>
+          <div className="glass-card rounded-[20px] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-left">
+                <p className="text-sm text-muted-foreground">Current Challenge</p>
+                <p className="text-2xl font-bold text-foreground">The Squad 💪</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Your Rank</p>
+                <p className="text-3xl font-bold text-[#1E90FF]">#2</p>
+              </div>
+            </div>
+            <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10">
+              <p className="text-sm text-foreground">3 days left • $250 pot</p>
             </div>
           </div>
-          <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10">
-            <p className="text-sm text-foreground">3 days left • $250 pot</p>
+
+          <div className="glass-card rounded-[20px] p-6 mt-4">
+            <div className="text-left mb-3">
+              <p className="text-sm text-muted-foreground">Your Screen Time</p>
+              <p className="text-4xl font-bold text-foreground">18.5h</p>
+              <p className="text-sm text-green-500 font-semibold mt-1">↓ 24% this week</p>
+            </div>
           </div>
         </div>
 
-        <div className="glass-card rounded-[20px] p-6">
-          <div className="text-left mb-3">
-            <p className="text-sm text-muted-foreground">Your Screen Time</p>
-            <p className="text-4xl font-bold text-foreground">18.5h</p>
-            <p className="text-sm text-green-500 font-semibold mt-1">↓ 24% this week</p>
-          </div>
+        {/* Selectors */}
+        <div className="space-y-4">
+          <h2 className="text-sm text-muted-foreground mb-3">Create New Challenge</h2>
+          
+          <Selector
+            label="Group"
+            value={selectedGroup}
+            options={groups}
+            dropdownId="group"
+            onSelect={setSelectedGroup}
+          />
+
+          <Selector
+            label="Challenge Type"
+            value={selectedChallenge}
+            options={challenges}
+            dropdownId="challenge"
+            onSelect={setSelectedChallenge}
+          />
+
+          <Selector
+            label="Duration"
+            value={selectedDuration}
+            options={durations}
+            dropdownId="duration"
+            onSelect={setSelectedDuration}
+          />
+
+          <button className="w-full bg-gradient-to-r from-[#1E90FF] to-[#4169E1] text-white font-bold py-4 rounded-[20px] shadow-lg hover:scale-[1.02] transition-transform mt-6">
+            Start Challenge
+          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const ChatTab = () => (
     <div className="flex-1 flex flex-col px-6 py-8">
