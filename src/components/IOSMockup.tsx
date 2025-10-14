@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, X } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
+
+type HomeView = "main" | "group-select" | "leaderboard";
 
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
-  const [showGroupSelector, setShowGroupSelector] = useState(false);
+  const [homeView, setHomeView] = useState<HomeView>("main");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const TabContent = () => {
     switch (activeTab) {
@@ -56,68 +57,117 @@ const IOSMockup = () => {
       ],
     };
 
-    const handleGroupSelect = (groupName: string) => {
-      setSelectedGroup(groupName);
-      setShowGroupSelector(false);
-      setShowLeaderboard(true);
-    };
-
-    const GroupSelector = () => (
-      <div className="fixed inset-0 z-50 flex items-end animate-in fade-in duration-300">
-        <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-          onClick={() => setShowGroupSelector(false)}
-        />
-        <div className="relative w-full glass-card rounded-t-[30px] p-6 pb-10 animate-in slide-in-from-bottom duration-300 bg-background dark:bg-card">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Select Group</h2>
+    // Main Home View
+    if (homeView === "main") {
+      return (
+        <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
+          <div className="mb-6">
+            <h2 className="text-sm text-muted-foreground mb-3">Your Stats</h2>
+            
             <button
-              onClick={() => setShowGroupSelector(false)}
-              className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+              onClick={() => setHomeView("group-select")}
+              className="w-full glass-card rounded-[20px] p-6 hover:scale-[1.02] transition-transform"
             >
-              <X className="w-5 h-5 text-foreground" />
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {groups.map((group) => (
-              <button
-                key={group.name}
-                onClick={() => handleGroupSelect(group.name)}
-                className="w-full glass-card rounded-[20px] p-5 flex items-center justify-between hover:scale-[1.02] transition-transform bg-background dark:bg-card"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl">{group.icon}</span>
-                  <div className="text-left">
-                    <p className="text-lg font-bold text-foreground">{group.name}</p>
-                    <p className="text-sm text-muted-foreground">{group.members} members</p>
-                  </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground">Current Challenge</p>
+                  <p className="text-2xl font-bold text-foreground">The Squad 💪</p>
                 </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Your Rank</p>
+                  <p className="text-3xl font-bold text-[#1E90FF]">#2</p>
+                </div>
+              </div>
+              <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10 flex items-center justify-between">
+                <p className="text-sm text-foreground">3 days left • $250 pot</p>
                 <ChevronRight className="w-5 h-5 text-[#1E90FF]" />
-              </button>
-            ))}
+              </div>
+            </button>
+
+            <div className="glass-card rounded-[20px] p-6 mt-4">
+              <div className="text-left mb-3">
+                <p className="text-sm text-muted-foreground">Your Screen Time</p>
+                <p className="text-4xl font-bold text-foreground">18.5h</p>
+                <p className="text-sm text-green-500 font-semibold mt-1">↓ 24% this week</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
 
-    const Leaderboard = () => {
-      if (!selectedGroup) return null;
-      const data = leaderboardData[selectedGroup as keyof typeof leaderboardData];
-
+    // Group Selection View
+    if (homeView === "group-select") {
       return (
-        <div className="fixed inset-0 z-50 flex flex-col animate-in fade-in duration-300 bg-background">
+        <div className="flex-1 flex flex-col animate-in slide-in-from-right duration-300">
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <button
-              onClick={() => {
-                setShowLeaderboard(false);
-                setSelectedGroup(null);
-              }}
+              onClick={() => setHomeView("main")}
               className="text-[#1E90FF] font-semibold"
             >
               ← Back
             </button>
-            <h2 className="text-xl font-bold text-foreground">{selectedGroup} Leaderboard</h2>
+            <h2 className="text-xl font-bold text-foreground">Select Group</h2>
+            <div className="w-12" />
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+            {/* Your Stats Card - Compact */}
+            <div className="glass-card rounded-[20px] p-5 mb-6 bg-gradient-to-br from-[#1E90FF] to-[#4169E1]">
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <p className="text-xs text-white/80 mb-1">Your Screen Time</p>
+                  <p className="text-3xl font-bold text-white">18.5h</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-white/80 mb-1">This Week</p>
+                  <p className="text-lg text-white/90 font-semibold">↓ 24%</p>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Your Groups</h3>
+
+            <div className="space-y-3">
+              {groups.map((group) => (
+                <button
+                  key={group.name}
+                  onClick={() => {
+                    setSelectedGroup(group.name);
+                    setHomeView("leaderboard");
+                  }}
+                  className="w-full glass-card rounded-[20px] p-5 flex items-center justify-between hover:scale-[1.02] transition-transform"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-4xl">{group.icon}</span>
+                    <div className="text-left">
+                      <p className="text-lg font-bold text-foreground">{group.name}</p>
+                      <p className="text-sm text-muted-foreground">{group.members} members</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-[#1E90FF]" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Leaderboard View
+    if (homeView === "leaderboard" && selectedGroup) {
+      const data = leaderboardData[selectedGroup as keyof typeof leaderboardData];
+
+      return (
+        <div className="flex-1 flex flex-col animate-in slide-in-from-right duration-300">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <button
+              onClick={() => setHomeView("group-select")}
+              className="text-[#1E90FF] font-semibold"
+            >
+              ← Back
+            </button>
+            <h2 className="text-xl font-bold text-foreground">{selectedGroup}</h2>
             <div className="w-12" />
           </div>
 
@@ -131,7 +181,7 @@ const IOSMockup = () => {
               </div>
             </div>
 
-            <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Rankings</h3>
+            <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Leaderboard</h3>
             
             <div className="space-y-3">
               {data.map((person) => (
@@ -140,7 +190,7 @@ const IOSMockup = () => {
                   className={`w-full glass-card rounded-[20px] p-5 transition-transform hover:scale-[1.02] ${
                     person.name === "You"
                       ? "bg-gradient-to-br from-[#1E90FF]/20 to-[#4169E1]/20 border-2 border-[#1E90FF]"
-                      : "bg-background dark:bg-card"
+                      : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -163,7 +213,7 @@ const IOSMockup = () => {
                     <div className="text-right">
                       <p className="text-3xl font-bold text-foreground">{person.time}h</p>
                       {person.name === "You" && (
-                        <p className="text-xs text-[#1E90FF] font-semibold mt-1">Your time</p>
+                        <p className="text-xs text-[#1E90FF] font-semibold mt-1">You</p>
                       )}
                     </div>
                   </div>
@@ -173,47 +223,9 @@ const IOSMockup = () => {
           </div>
         </div>
       );
-    };
+    }
 
-    return (
-      <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
-        {/* Your Stats - Always Visible */}
-        <div className="mb-6">
-          <h2 className="text-sm text-muted-foreground mb-3">Your Stats</h2>
-          
-          <button
-            onClick={() => setShowGroupSelector(true)}
-            className="w-full glass-card rounded-[20px] p-6 hover:scale-[1.02] transition-transform"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-left">
-                <p className="text-sm text-muted-foreground">Current Challenge</p>
-                <p className="text-2xl font-bold text-foreground">The Squad 💪</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Your Rank</p>
-                <p className="text-3xl font-bold text-[#1E90FF]">#2</p>
-              </div>
-            </div>
-            <div className="glass-card-inner rounded-[15px] p-4 bg-[#1E90FF]/10 flex items-center justify-between">
-              <p className="text-sm text-foreground">3 days left • $250 pot</p>
-              <ChevronRight className="w-5 h-5 text-[#1E90FF]" />
-            </div>
-          </button>
-
-          <div className="glass-card rounded-[20px] p-6 mt-4">
-            <div className="text-left mb-3">
-              <p className="text-sm text-muted-foreground">Your Screen Time</p>
-              <p className="text-4xl font-bold text-foreground">18.5h</p>
-              <p className="text-sm text-green-500 font-semibold mt-1">↓ 24% this week</p>
-            </div>
-          </div>
-        </div>
-
-        {showGroupSelector && <GroupSelector />}
-        {showLeaderboard && <Leaderboard />}
-      </div>
-    );
+    return null;
   };
 
   const ChatTab = () => (
