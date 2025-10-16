@@ -459,9 +459,9 @@ const IOSMockup = () => {
     };
     
     return (
-      <div className="flex-1 flex flex-col">
-        {/* Sticky Challenge Summary */}
-        <div className="sticky top-0 z-10 px-6 pt-4 pb-2 backdrop-blur-xl bg-background/80">
+      <div className="flex-1 flex flex-col h-full">
+        {/* Challenge Summary Header */}
+        <div className="flex-shrink-0 px-6 pt-4 pb-2 backdrop-blur-xl bg-background/80 border-b border-border">
           <div className="glass-card rounded-2xl p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -489,7 +489,7 @@ const IOSMockup = () => {
         </div>
         
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 pb-32">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
           {messages.map((msg) => {
             const member = msg.authorId ? getMember(msg.authorId) : null;
             const isMe = msg.authorId === "1";
@@ -586,7 +586,7 @@ const IOSMockup = () => {
         </div>
         
         {/* Composer Bar */}
-        <div className="fixed bottom-20 left-0 right-0 px-6 pb-4 backdrop-blur-xl bg-background/90">
+        <div className="flex-shrink-0 px-6 pb-4 pt-2 backdrop-blur-xl bg-background/90 border-t border-border">
           {replyingTo && (
             <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -602,7 +602,7 @@ const IOSMockup = () => {
           )}
           
           {/* Quick Chips */}
-          <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-2 overflow-x-auto pb-2 scrollbar-hide">
             {quickChips.map((chip) => (
               <button
                 key={chip}
