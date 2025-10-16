@@ -158,9 +158,9 @@ const IOSMockup = () => {
     const userRank = data.find(p => p.name === "You")?.rank || "-";
 
     return (
-      <div className="flex-1 flex flex-col">
-        {/* Group Selector Header */}
-        <div className="px-6 py-4 border-b border-border">
+      <div className="h-full flex flex-col">
+        {/* Group Selector Header - Fixed */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
           <div className="relative">
             <button
               onClick={() => setShowGroupSelector(!showGroupSelector)}
@@ -207,7 +207,8 @@ const IOSMockup = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Challenge Info Banner */}
           <div className="glass-card rounded-[20px] p-4 mb-6 bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30">
             <div className="flex items-center justify-between">
@@ -459,8 +460,8 @@ const IOSMockup = () => {
     };
     
     return (
-      <div className="flex-1 flex flex-col h-full">
-        {/* Challenge Summary Header */}
+      <div className="h-full flex flex-col">
+        {/* Challenge Summary Header - Fixed */}
         <div className="flex-shrink-0 px-6 pt-4 pb-2 backdrop-blur-xl bg-background/80 border-b border-border">
           <div className="glass-card rounded-2xl p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
             <div className="flex items-center justify-between mb-3">
@@ -488,8 +489,8 @@ const IOSMockup = () => {
           </div>
         </div>
         
-        {/* Message List */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        {/* Message List - Scrollable */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
           {messages.map((msg) => {
             const member = msg.authorId ? getMember(msg.authorId) : null;
             const isMe = msg.authorId === "1";
@@ -585,7 +586,7 @@ const IOSMockup = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Composer Bar */}
+        {/* Composer Bar - Fixed */}
         <div className="flex-shrink-0 px-6 pb-4 pt-2 backdrop-blur-xl bg-background/90 border-t border-border">
           {replyingTo && (
             <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
@@ -745,9 +746,9 @@ const IOSMockup = () => {
     };
 
     return (
-      <div className="flex-1 flex flex-col">
-        {/* Group Selector Header */}
-        <div className="px-6 py-4 border-b border-border">
+      <div className="h-full flex flex-col">
+        {/* Group Selector Header - Fixed */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
           <div className="relative">
             <button
               onClick={() => setShowGroupDropdown(!showGroupDropdown)}
@@ -791,7 +792,8 @@ const IOSMockup = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
           <h1 className="text-2xl font-bold mb-6 text-foreground">Leader & Challenge Settings</h1>
 
           {/* Card 1: Leader Nomination */}
@@ -1016,8 +1018,8 @@ const IOSMockup = () => {
   };
 
   const StatsTab = () => (
-    <div className="flex-1 flex flex-col">
-      <div className="px-6 py-8 pb-28 overflow-y-auto">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
         <h1 className="text-3xl font-bold mb-6 text-foreground">Your Stats</h1>
         <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-6">
@@ -1087,8 +1089,8 @@ const IOSMockup = () => {
   );
 
   const ProfileTab = () => (
-    <div className="flex-1 flex flex-col">
-      <div className="px-6 py-8 pb-28 overflow-y-auto">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="flex flex-col items-center">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
             JD
@@ -1136,8 +1138,8 @@ const IOSMockup = () => {
   );
 
   const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
-    <div className="flex-1 flex flex-col">
-      <div className="px-6 py-8 pb-28 overflow-y-auto">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
         <h1 className="text-3xl font-bold mb-6 text-foreground">Settings</h1>
         <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-5">
