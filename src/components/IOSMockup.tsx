@@ -210,7 +210,7 @@ const IOSMockup = () => {
         {/* Group Selector Header - Fixed */}
         <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-primary">Analog</h1>
+            <h1 className="text-xl font-bold text-primary italic">Analog</h1>
           </div>
           <div className="relative">
             <button
@@ -514,7 +514,7 @@ const IOSMockup = () => {
       <div className="h-full flex flex-col">
         {/* Challenge Summary Header - Fixed */}
         <div className="flex-shrink-0 px-6 pt-4 pb-2 backdrop-blur-xl bg-background/80 border-b border-border">
-          <h1 className="text-xl font-bold text-primary mb-3">Analog</h1>
+          <h1 className="text-xl font-bold text-primary mb-3 italic">Analog</h1>
           <div className="glass-card rounded-2xl p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -808,7 +808,7 @@ const IOSMockup = () => {
         {/* Group Selector Header - Fixed */}
         <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-primary">Analog</h1>
+            <h1 className="text-xl font-bold text-primary italic">Analog</h1>
           </div>
           <div className="relative">
             <button
@@ -1131,7 +1131,7 @@ const IOSMockup = () => {
     return (
       <div className="h-full flex flex-col">
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <h1 className="text-xl font-bold text-primary mb-4">Analog</h1>
+          <h1 className="text-xl font-bold text-primary mb-4 italic">Analog</h1>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-foreground">Your Stats</h2>
             <button
@@ -1371,7 +1371,7 @@ const IOSMockup = () => {
   const ProfileTab = () => (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h1 className="text-xl font-bold text-primary mb-6">Analog</h1>
+        <h1 className="text-xl font-bold text-primary mb-6 italic">Analog</h1>
         <div className="flex flex-col items-center">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
             JD
@@ -1421,7 +1421,7 @@ const IOSMockup = () => {
   const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h1 className="text-3xl font-bold text-primary mb-6">Analog</h1>
+        <h1 className="text-5xl font-bold text-primary mb-8 text-center italic">Analog</h1>
         <h2 className="text-2xl font-bold text-foreground mb-6">Settings</h2>
         <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-5">
