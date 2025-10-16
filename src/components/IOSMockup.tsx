@@ -509,7 +509,6 @@ const IOSMockup = () => {
               <div
                 key={msg.id}
                 className={`flex gap-2 ${isMe ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-                onLongPress={() => setShowReactionPicker(msg.id)}
               >
                 {!isMe && (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm flex-shrink-0">
@@ -1084,6 +1083,7 @@ const IOSMockup = () => {
         </div>
       </div>
     </div>
+    </div>
   );
 
   const ProfileTab = () => (
@@ -1186,7 +1186,7 @@ const IOSMockup = () => {
         </button>
       </div>
     </div>
-    </div>
+  </div>
   );
 
   const tabs = [
