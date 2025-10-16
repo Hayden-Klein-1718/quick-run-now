@@ -1,12 +1,57 @@
 import { useState } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, Users2, Crown, Check, X, Calendar } from "lucide-react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
+
+type Member = { id: string; name: string; avatar: string };
+type ChallengeSettings = {
+  start?: string;
+  end?: string;
+  preset?: "1w" | "2w" | "1m" | null;
+  pool?: { enabled: boolean; amount?: number; currency?: "USD" | "EUR" | "GBP" };
+  goals: string[];
+};
+type Group = {
+  id: string;
+  name: string;
+  members: Member[];
+  leaderId?: string;
+  settings: ChallengeSettings;
+};
 
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
   const [selectedGroup, setSelectedGroup] = useState<string>("Friends");
   const [showGroupSelector, setShowGroupSelector] = useState(false);
+  
+  // Group settings state
+  const [currentGroup, setCurrentGroup] = useState<Group>({
+    id: "friends-group",
+    name: "Friends",
+    members: [
+      { id: "1", name: "You", avatar: "🔵" },
+      { id: "2", name: "Jake H.", avatar: "🟢" },
+      { id: "3", name: "Sarah M.", avatar: "🟣" },
+      { id: "4", name: "Mike T.", avatar: "🟠" },
+      { id: "5", name: "Emma L.", avatar: "🟡" },
+    ],
+    leaderId: "1",
+    settings: {
+      preset: "2w",
+      pool: { enabled: true, amount: 250, currency: "USD" },
+      goals: ["Screen Time", "Steps"],
+    },
+  });
+  
+  const [showLeaderModal, setShowLeaderModal] = useState(false);
+  const [selectedLeaderId, setSelectedLeaderId] = useState<string | null>(null);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [timePreset, setTimePreset] = useState<"1w" | "2w" | "1m" | "custom">(currentGroup.settings.preset || "2w");
+  const [poolEnabled, setPoolEnabled] = useState(currentGroup.settings.pool?.enabled || false);
+  const [poolAmount, setPoolAmount] = useState(currentGroup.settings.pool?.amount || 0);
+  const [poolCurrency, setPoolCurrency] = useState<"USD" | "EUR" | "GBP">(currentGroup.settings.pool?.currency || "USD");
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(currentGroup.settings.goals || []);
 
   const TabContent = () => {
     switch (activeTab) {
@@ -14,6 +59,8 @@ const IOSMockup = () => {
         return <HomeTab />;
       case "chat":
         return <ChatTab />;
+      case "group":
+        return <GroupTab />;
       case "stats":
         return <StatsTab />;
       case "profile":
@@ -326,6 +373,280 @@ const IOSMockup = () => {
     </div>
   );
 
+  const GroupTab = () => {
+    const isLeader = currentGroup.leaderId === "1"; // Assuming user ID is "1"
+    const leader = currentGroup.members.find(m => m.id === currentGroup.leaderId);
+    const availableGoals = ["Screen Time", "Steps", "Energy", "Water Intake", "Sleep"];
+
+    const handleNominateLeader = (memberId: string) => {
+      setSelectedLeaderId(memberId);
+      setShowLeaderModal(true);
+    };
+
+    const confirmLeader = () => {
+      if (selectedLeaderId) {
+        setCurrentGroup(prev => ({ ...prev, leaderId: selectedLeaderId }));
+        const newLeader = currentGroup.members.find(m => m.id === selectedLeaderId);
+        toast.success(`${newLeader?.name} is now the Group Leader!`);
+        setShowLeaderModal(false);
+        setSelectedLeaderId(null);
+      }
+    };
+
+    const toggleGoal = (goal: string) => {
+      if (!isLeader) return;
+      setSelectedGoals(prev =>
+        prev.includes(goal) ? prev.filter(g => g !== goal) : [...prev, goal]
+      );
+    };
+
+    const handleSaveSettings = () => {
+      if (!isLeader) return;
+      setCurrentGroup(prev => ({
+        ...prev,
+        settings: {
+          preset: timePreset !== "custom" ? timePreset : null,
+          pool: { enabled: poolEnabled, amount: poolAmount, currency: poolCurrency },
+          goals: selectedGoals,
+        },
+      }));
+      toast.success("Challenge settings saved!");
+    };
+
+    const handleStartChallenge = () => {
+      setShowStartModal(true);
+    };
+
+    const confirmStartChallenge = () => {
+      const duration = timePreset === "1w" ? "1 Week" : timePreset === "2w" ? "2 Weeks" : "1 Month";
+      toast.success(`Challenge started for ${currentGroup.name}!`);
+      setShowStartModal(false);
+    };
+
+    return (
+      <div className="flex-1 flex flex-col px-6 py-6 overflow-y-auto pb-28">
+        <h1 className="text-2xl font-bold mb-6 text-foreground">Leader & Challenge Settings</h1>
+
+        {/* Card 1: Leader Nomination */}
+        <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-4">
+              <Crown className="w-5 h-5 text-yellow-500" />
+              <h2 className="text-lg font-bold text-foreground">Group Leader</h2>
+            </div>
+            
+            <div className="space-y-2">
+              {currentGroup.members.map((member) => (
+                <button
+                  key={member.id}
+                  onClick={() => handleNominateLeader(member.id)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                    currentGroup.leaderId === member.id
+                      ? "bg-primary/20 border-2 border-primary"
+                      : "bg-muted/30 hover:bg-muted/50"
+                  }`}
+                >
+                  <span className="text-2xl">{member.avatar}</span>
+                  <span className="font-semibold text-foreground flex-1 text-left">{member.name}</span>
+                  {currentGroup.leaderId === member.id && (
+                    <Crown className="w-5 h-5 text-yellow-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Challenge Settings */}
+        <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
+          <div className="relative">
+            <h2 className="text-lg font-bold text-foreground mb-4">Challenge Settings</h2>
+            
+            {!isLeader && (
+              <div className="mb-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 text-center">
+                Only the leader can change these settings
+              </div>
+            )}
+
+            {/* Time Limit */}
+            <div className="mb-4">
+              <label className="text-sm font-semibold text-foreground mb-2 block">Time Limit</label>
+              <div className="flex gap-2">
+                {["1w", "2w", "1m"].map((preset) => (
+                  <button
+                    key={preset}
+                    disabled={!isLeader}
+                    onClick={() => setTimePreset(preset as any)}
+                    className={`flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all ${
+                      timePreset === preset
+                        ? "bg-primary text-white"
+                        : "bg-muted/30 text-foreground hover:bg-muted/50"
+                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {preset === "1w" ? "1 Week" : preset === "2w" ? "2 Weeks" : "1 Month"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Money Pool */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-semibold text-foreground">Money Pool</label>
+                <button
+                  disabled={!isLeader}
+                  onClick={() => setPoolEnabled(!poolEnabled)}
+                  className={`w-12 h-6 rounded-full transition-all ${
+                    poolEnabled ? "bg-primary" : "bg-muted"
+                  } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white shadow-lg transition-transform ${
+                      poolEnabled ? "translate-x-6" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+              {poolEnabled && (
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    disabled={!isLeader}
+                    value={poolAmount}
+                    onChange={(e) => setPoolAmount(Number(e.target.value))}
+                    className={`flex-1 px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
+                      !isLeader ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    placeholder="Amount"
+                  />
+                  <select
+                    disabled={!isLeader}
+                    value={poolCurrency}
+                    onChange={(e) => setPoolCurrency(e.target.value as any)}
+                    className={`px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
+                      !isLeader ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Main Goals */}
+            <div className="mb-4">
+              <label className="text-sm font-semibold text-foreground mb-2 block">Main Goals</label>
+              <div className="flex flex-wrap gap-2">
+                {availableGoals.map((goal) => (
+                  <button
+                    key={goal}
+                    disabled={!isLeader}
+                    onClick={() => toggleGoal(goal)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      selectedGoals.includes(goal)
+                        ? "bg-primary text-white"
+                        : "bg-muted/30 text-foreground hover:bg-muted/50"
+                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {goal}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              disabled={!isLeader}
+              onClick={handleSaveSettings}
+              className={`w-full py-3 rounded-xl font-bold transition-all ${
+                isLeader
+                  ? "bg-primary text-white hover:scale-[1.02]"
+                  : "bg-muted/30 text-muted-foreground cursor-not-allowed"
+              }`}
+            >
+              {isLeader ? "Save Settings" : "View Only (Leader can Save)"}
+            </button>
+          </div>
+        </div>
+
+        {/* Card 3: Start Challenge */}
+        {isLeader && (
+          <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
+            <div className="relative">
+              <button
+                onClick={handleStartChallenge}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:scale-[1.02] transition-all shadow-lg"
+              >
+                Start Challenge
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Leader Nomination Modal */}
+        {showLeaderModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="glass-card rounded-2xl p-6 max-w-sm mx-4 border border-white/30">
+              <h3 className="text-xl font-bold text-foreground mb-3">Nominate Leader</h3>
+              <p className="text-foreground mb-6">
+                Nominate {currentGroup.members.find(m => m.id === selectedLeaderId)?.name} as Group Leader? This gives them control of challenge settings.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLeaderModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-muted text-foreground font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLeader}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Start Challenge Modal */}
+        {showStartModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="glass-card rounded-2xl p-6 max-w-sm mx-4 border border-white/30">
+              <h3 className="text-xl font-bold text-foreground mb-3">Start Challenge</h3>
+              <p className="text-foreground mb-2">
+                Start challenge for <span className="font-bold">{currentGroup.name}</span>?
+              </p>
+              <div className="text-sm text-muted-foreground mb-6 space-y-1">
+                <p>• Duration: {timePreset === "1w" ? "1 Week" : timePreset === "2w" ? "2 Weeks" : "1 Month"}</p>
+                <p>• Pool: {poolEnabled ? `$${poolAmount} ${poolCurrency}` : "None"}</p>
+                <p>• Goals: {selectedGoals.join(", ")}</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowStartModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-muted text-foreground font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmStartChallenge}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold"
+                >
+                  Start
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const StatsTab = () => (
     <div className="flex-1 flex flex-col px-6 py-8">
       <h1 className="text-3xl font-bold mb-6 text-foreground">Your Stats</h1>
@@ -495,8 +816,8 @@ const IOSMockup = () => {
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "chat", label: "Chat", icon: MessageCircle },
+    { id: "group", label: "Group", icon: Users2 },
     { id: "stats", label: "Stats", icon: BarChart3 },
-    { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
