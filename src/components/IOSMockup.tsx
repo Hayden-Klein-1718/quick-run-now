@@ -37,6 +37,18 @@ type LiveStats = {
   leaderId?: string;
 };
 
+type AppUsage = { appId: string; name: string; icon: string; category: string; minutes: number };
+type CategoryUsage = { category: string; minutes: number; color: string };
+type ScreenTimeGoal = {
+  id: string;
+  name: string;
+  period: "daily" | "weekly";
+  limitMinutes: number;
+  apps?: string[];
+  categories?: string[];
+  schedule?: { days?: number[]; start?: string; end?: string };
+};
+
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("home");
@@ -86,6 +98,42 @@ const IOSMockup = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Screen Time Goal state
+  const [screenTimeGoals, setScreenTimeGoals] = useState<ScreenTimeGoal[]>([
+    {
+      id: "1",
+      name: "Daily Social Limit",
+      period: "daily",
+      limitMinutes: 90,
+      categories: ["Social"],
+    },
+  ]);
+  const [showGoalBuilder, setShowGoalBuilder] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<ScreenTimeGoal | null>(null);
+  const [goalName, setGoalName] = useState("");
+  const [goalPeriod, setGoalPeriod] = useState<"daily" | "weekly">("daily");
+  const [goalLimit, setGoalLimit] = useState(90);
+  const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  
+  const appUsageData: AppUsage[] = [
+    { appId: "instagram", name: "Instagram", icon: "📸", category: "Social", minutes: 145 },
+    { appId: "tiktok", name: "TikTok", icon: "🎵", category: "Social", minutes: 112 },
+    { appId: "twitter", name: "Twitter", icon: "🐦", category: "Social", minutes: 78 },
+    { appId: "youtube", name: "YouTube", icon: "📺", category: "Entertainment", minutes: 203 },
+    { appId: "netflix", name: "Netflix", icon: "🎬", category: "Entertainment", minutes: 156 },
+    { appId: "spotify", name: "Spotify", icon: "🎧", category: "Entertainment", minutes: 89 },
+  ];
+  
+  const categoryUsageData: CategoryUsage[] = [
+    { category: "Social", minutes: 335, color: "#FF6B9D" },
+    { category: "Entertainment", minutes: 448, color: "#4ECDC4" },
+    { category: "Productivity", minutes: 67, color: "#95E1D3" },
+  ];
+  
+  const availableApps = appUsageData.map(app => ({ id: app.appId, name: app.name, icon: app.icon }));
+  const availableCategories = ["Social", "Entertainment", "Productivity", "Games", "News"];
   
   const liveStats: LiveStats = {
     goalKeys: ["Steps", "Screen Time"],
@@ -489,8 +537,14 @@ const IOSMockup = () => {
           </div>
         </div>
         
-        {/* Message List - Scrollable */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Message List - Scrollable with extra bottom padding */}
+        <div 
+          className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-3" 
+          style={{ 
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: '180px' // Composer (80px) + Nav (56px) + safe area (44px)
+          }}
+        >
           {messages.map((msg) => {
             const member = msg.authorId ? getMember(msg.authorId) : null;
             const isMe = msg.authorId === "1";
@@ -586,8 +640,8 @@ const IOSMockup = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Composer Bar - Fixed */}
-        <div className="flex-shrink-0 px-6 pb-4 pt-2 backdrop-blur-xl bg-background/90 border-t border-border">
+        {/* Composer Bar - Fixed above bottom nav */}
+        <div className="absolute bottom-[88px] left-0 right-0 px-6 py-3 backdrop-blur-xl bg-background/95 border-t border-border shadow-lg">
           {replyingTo && (
             <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1017,76 +1071,294 @@ const IOSMockup = () => {
     );
   };
 
-  const StatsTab = () => (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h1 className="text-3xl font-bold mb-6 text-foreground">Your Stats</h1>
-        <div className="space-y-4">
-        <div className="glass-card rounded-[20px] p-6">
-          <div className="flex items-center justify-center mb-4">
-            <div className="relative w-32 h-32">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  fill="none"
-                  className="text-muted/20"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  stroke="#1E90FF"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray={`${2 * Math.PI * 56 * 0.65} ${2 * Math.PI * 56}`}
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-foreground">65%</p>
-                  <p className="text-xs text-muted-foreground">Progress</p>
+  const StatsTab = () => {
+    const totalMinutes = appUsageData.reduce((sum, app) => sum + app.minutes, 0);
+    const currentGoal = screenTimeGoals[0];
+    const currentUsage = currentGoal?.categories 
+      ? categoryUsageData.filter(c => currentGoal.categories?.includes(c.category)).reduce((sum, c) => sum + c.minutes, 0)
+      : totalMinutes;
+    const progressPercent = currentGoal ? Math.min((currentUsage / currentGoal.limitMinutes) * 100, 100) : 0;
+    
+    const createOrUpdateGoal = () => {
+      const newGoal: ScreenTimeGoal = {
+        id: editingGoal?.id || Date.now().toString(),
+        name: goalName || "Screen Time Goal",
+        period: goalPeriod,
+        limitMinutes: goalLimit,
+        apps: selectedApps.length > 0 ? selectedApps : undefined,
+        categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      };
+      
+      if (editingGoal) {
+        setScreenTimeGoals(goals => goals.map(g => g.id === editingGoal.id ? newGoal : g));
+      } else {
+        setScreenTimeGoals(goals => [...goals, newGoal]);
+      }
+      
+      toast.success("Goal saved!");
+      setShowGoalBuilder(false);
+      resetGoalForm();
+    };
+    
+    const resetGoalForm = () => {
+      setGoalName("");
+      setGoalPeriod("daily");
+      setGoalLimit(90);
+      setSelectedApps([]);
+      setSelectedCategories([]);
+      setEditingGoal(null);
+    };
+    
+    const toggleApp = (appId: string) => {
+      setSelectedApps(prev => 
+        prev.includes(appId) ? prev.filter(id => id !== appId) : [...prev, appId]
+      );
+    };
+    
+    const toggleCategory = (category: string) => {
+      setSelectedCategories(prev =>
+        prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+      );
+    };
+    
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-foreground">Your Stats</h1>
+            <button
+              onClick={() => setShowGoalBuilder(true)}
+              className="glass-card rounded-xl px-4 py-2 text-sm font-semibold text-primary hover:scale-105 transition-transform"
+            >
+              + New Goal
+            </button>
+          </div>
+          
+          {/* Current Goal Progress */}
+          {currentGoal && (
+            <div className="glass-card rounded-2xl p-6 mb-6 relative overflow-hidden backdrop-blur-xl border border-white/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+              <div className="relative">
+                <h2 className="text-lg font-bold text-foreground mb-4">{currentGoal.name}</h2>
+                <div className="flex items-center justify-center mb-4">
+                  <div className="relative w-32 h-32">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        fill="none"
+                        className="text-muted/20"
+                      />
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="#1E90FF"
+                        strokeWidth="12"
+                        fill="none"
+                        strokeDasharray={`${2 * Math.PI * 56 * (progressPercent / 100)} ${2 * Math.PI * 56}`}
+                        className="transition-all duration-1000"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-3xl font-bold text-foreground">{currentUsage}</p>
+                        <p className="text-xs text-muted-foreground">of {currentGoal.limitMinutes} min</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  {currentGoal.period === "daily" ? "Today" : "This Week"} • {currentGoal.categories?.join(", ") || "All Apps"}
+                </p>
               </div>
             </div>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">Weekly Goal: Under 25h</p>
-        </div>
+          )}
 
-        <div className="glass-card rounded-[20px] p-5">
-          <p className="text-sm text-muted-foreground mb-3">Top Apps</p>
-          <div className="space-y-2">
-            {[
-              { name: "Instagram", time: "6.2h", icon: "📸", width: "70%" },
-              { name: "TikTok", time: "4.8h", icon: "🎵", width: "55%" },
-              { name: "Twitter", time: "3.1h", icon: "🐦", width: "35%" },
-            ].map((app, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <span className="text-2xl">{app.icon}</span>
-                <div className="flex-1">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm font-medium text-foreground">{app.name}</span>
-                    <span className="text-sm font-semibold text-foreground">{app.time}</span>
+          {/* By App Breakdown */}
+          <div className="glass-card rounded-2xl p-5 mb-6">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              📱 By App
+            </h3>
+            <div className="space-y-3">
+              {appUsageData.map((app) => {
+                const percent = ((app.minutes / totalMinutes) * 100).toFixed(0);
+                return (
+                  <button
+                    key={app.appId}
+                    onClick={() => toast.info(`${app.name}: ${app.minutes} min today`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-all"
+                  >
+                    <span className="text-2xl">{app.icon}</span>
+                    <div className="flex-1 text-left">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-semibold text-foreground">{app.name}</span>
+                        <span className="text-sm font-bold text-foreground">{app.minutes} min</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-muted/30 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-muted-foreground">{percent}%</span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* By Category Breakdown */}
+          <div className="glass-card rounded-2xl p-5">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              📊 By Category
+            </h3>
+            <div className="space-y-3">
+              {categoryUsageData.map((cat) => {
+                const catTotal = categoryUsageData.reduce((sum, c) => sum + c.minutes, 0);
+                const percent = ((cat.minutes / catTotal) * 100).toFixed(0);
+                return (
+                  <div key={cat.category} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-semibold text-foreground">{cat.category}</span>
+                        <span className="text-sm font-bold text-foreground">{cat.minutes} min</span>
+                      </div>
+                      <div className="h-3 bg-muted/30 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${percent}%`,
+                            backgroundColor: cat.color 
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#1E90FF] to-[#4169E1] rounded-full transition-all duration-1000"
-                      style={{ width: app.width }}
-                    />
-                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        
+        {/* Goal Builder Modal */}
+        {showGoalBuilder && (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="glass-card rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">Screen Time Goal</h2>
+                <button onClick={() => { setShowGoalBuilder(false); resetGoalForm(); }}>
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+              
+              {/* Goal Name */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Goal Name</label>
+                <input
+                  type="text"
+                  value={goalName}
+                  onChange={(e) => setGoalName(e.target.value)}
+                  placeholder="e.g., Daily Social Limit"
+                  className="w-full px-4 py-3 rounded-xl bg-muted/30 text-foreground font-semibold outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              {/* Period */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Period</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setGoalPeriod("daily")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                      goalPeriod === "daily" ? "bg-primary text-white" : "bg-muted/30 text-foreground"
+                    }`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    onClick={() => setGoalPeriod("weekly")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                      goalPeriod === "weekly" ? "bg-primary text-white" : "bg-muted/30 text-foreground"
+                    }`}
+                  >
+                    Weekly
+                  </button>
                 </div>
               </div>
-            ))}
+              
+              {/* Target Minutes */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">
+                  Target ({goalPeriod === "daily" ? "minutes/day" : "hours/week"})
+                </label>
+                <input
+                  type="number"
+                  value={goalLimit}
+                  onChange={(e) => setGoalLimit(Number(e.target.value))}
+                  className="w-full px-4 py-3 rounded-xl bg-muted/30 text-foreground font-semibold outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              {/* Select Apps */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Apps (optional)</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableApps.map((app) => (
+                    <button
+                      key={app.id}
+                      onClick={() => toggleApp(app.id)}
+                      className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedApps.includes(app.id)
+                          ? "bg-primary/20 border-2 border-primary text-primary"
+                          : "bg-muted/30 text-foreground"
+                      }`}
+                    >
+                      {app.icon} {app.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Select Categories */}
+              <div className="mb-6">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Categories (optional)</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => toggleCategory(cat)}
+                      className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedCategories.includes(cat)
+                          ? "bg-primary/20 border-2 border-primary text-primary"
+                          : "bg-muted/30 text-foreground"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Save Button */}
+              <button
+                onClick={createOrUpdateGoal}
+                className="w-full py-3 rounded-xl bg-primary text-white font-bold hover:scale-105 transition-transform"
+              >
+                Save Goal
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
-    </div>
-    </div>
-  );
+    );
+  };
 
   const ProfileTab = () => (
     <div className="h-full flex flex-col">
