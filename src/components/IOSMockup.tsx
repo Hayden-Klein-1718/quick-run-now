@@ -374,9 +374,24 @@ const IOSMockup = () => {
   );
 
   const GroupTab = () => {
+    const groups = [
+      { name: "Friends", icon: "👥", members: 8 },
+      { name: "Family", icon: "👨‍👩‍👧‍👦", members: 5 },
+      { name: "Work", icon: "💼", members: 12 },
+    ];
+
     const isLeader = currentGroup.leaderId === "1"; // Assuming user ID is "1"
     const leader = currentGroup.members.find(m => m.id === currentGroup.leaderId);
     const availableGoals = ["Screen Time", "Steps", "Energy", "Water Intake", "Sleep"];
+    const currentGroupInfo = groups.find(g => g.name === currentGroup.name);
+    const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+
+    const handleGroupChange = (groupName: string) => {
+      setSelectedGroup(groupName);
+      setCurrentGroup(prev => ({ ...prev, name: groupName }));
+      setShowGroupDropdown(false);
+      toast.success(`Switched to ${groupName}`);
+    };
 
     const handleNominateLeader = (memberId: string) => {
       setSelectedLeaderId(memberId);
@@ -424,168 +439,215 @@ const IOSMockup = () => {
     };
 
     return (
-      <div className="flex-1 flex flex-col px-6 py-6 overflow-y-auto pb-28">
-        <h1 className="text-2xl font-bold mb-6 text-foreground">Leader & Challenge Settings</h1>
-
-        {/* Card 1: Leader Nomination */}
-        <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+      <div className="flex-1 flex flex-col">
+        {/* Group Selector Header */}
+        <div className="px-6 py-4 border-b border-border">
           <div className="relative">
-            <div className="flex items-center gap-2 mb-4">
-              <Crown className="w-5 h-5 text-yellow-500" />
-              <h2 className="text-lg font-bold text-foreground">Group Leader</h2>
-            </div>
-            
-            <div className="space-y-2">
-              {currentGroup.members.map((member) => (
-                <button
-                  key={member.id}
-                  onClick={() => handleNominateLeader(member.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                    currentGroup.leaderId === member.id
-                      ? "bg-primary/20 border-2 border-primary"
-                      : "bg-muted/30 hover:bg-muted/50"
-                  }`}
-                >
-                  <span className="text-2xl">{member.avatar}</span>
-                  <span className="font-semibold text-foreground flex-1 text-left">{member.name}</span>
-                  {currentGroup.leaderId === member.id && (
-                    <Crown className="w-5 h-5 text-yellow-500" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+            <button
+              onClick={() => setShowGroupDropdown(!showGroupDropdown)}
+              className="w-full glass-card rounded-[20px] p-4 flex items-center justify-between hover:scale-[1.02] transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{currentGroupInfo?.icon}</span>
+                <div className="text-left">
+                  <p className="text-xs text-muted-foreground">Current Group</p>
+                  <p className="text-lg font-bold text-foreground">{currentGroup.name}</p>
+                </div>
+              </div>
+              <ChevronRight className={`w-5 h-5 text-primary transition-transform ${showGroupDropdown ? "rotate-90" : ""}`} />
+            </button>
 
-        {/* Card 2: Challenge Settings */}
-        <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
-          <div className="relative">
-            <h2 className="text-lg font-bold text-foreground mb-4">Challenge Settings</h2>
-            
-            {!isLeader && (
-              <div className="mb-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 text-center">
-                Only the leader can change these settings
+            {/* Group Selector Dropdown */}
+            {showGroupDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 glass-card rounded-[20px] p-3 space-y-2 z-50 animate-in fade-in duration-200">
+                {groups.map((group) => (
+                  <button
+                    key={group.name}
+                    onClick={() => handleGroupChange(group.name)}
+                    className={`w-full rounded-[15px] p-3 flex items-center gap-3 transition-all hover:scale-[1.02] ${
+                      currentGroup.name === group.name
+                        ? "bg-primary/20 border-2 border-primary"
+                        : "glass-card-inner"
+                    }`}
+                  >
+                    <span className="text-2xl">{group.icon}</span>
+                    <div className="text-left flex-1">
+                      <p className="font-bold text-foreground">{group.name}</p>
+                      <p className="text-xs text-muted-foreground">{group.members} members</p>
+                    </div>
+                    {currentGroup.name === group.name && (
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    )}
+                  </button>
+                ))}
               </div>
             )}
-
-            {/* Time Limit */}
-            <div className="mb-4">
-              <label className="text-sm font-semibold text-foreground mb-2 block">Time Limit</label>
-              <div className="flex gap-2">
-                {["1w", "2w", "1m"].map((preset) => (
-                  <button
-                    key={preset}
-                    disabled={!isLeader}
-                    onClick={() => setTimePreset(preset as any)}
-                    className={`flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all ${
-                      timePreset === preset
-                        ? "bg-primary text-white"
-                        : "bg-muted/30 text-foreground hover:bg-muted/50"
-                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {preset === "1w" ? "1 Week" : preset === "2w" ? "2 Weeks" : "1 Month"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Money Pool */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-foreground">Money Pool</label>
-                <button
-                  disabled={!isLeader}
-                  onClick={() => setPoolEnabled(!poolEnabled)}
-                  className={`w-12 h-6 rounded-full transition-all ${
-                    poolEnabled ? "bg-primary" : "bg-muted"
-                  } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full bg-white shadow-lg transition-transform ${
-                      poolEnabled ? "translate-x-6" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
-              {poolEnabled && (
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    disabled={!isLeader}
-                    value={poolAmount}
-                    onChange={(e) => setPoolAmount(Number(e.target.value))}
-                    className={`flex-1 px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
-                      !isLeader ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    placeholder="Amount"
-                  />
-                  <select
-                    disabled={!isLeader}
-                    value={poolCurrency}
-                    onChange={(e) => setPoolCurrency(e.target.value as any)}
-                    className={`px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
-                      !isLeader ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Main Goals */}
-            <div className="mb-4">
-              <label className="text-sm font-semibold text-foreground mb-2 block">Main Goals</label>
-              <div className="flex flex-wrap gap-2">
-                {availableGoals.map((goal) => (
-                  <button
-                    key={goal}
-                    disabled={!isLeader}
-                    onClick={() => toggleGoal(goal)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      selectedGoals.includes(goal)
-                        ? "bg-primary text-white"
-                        : "bg-muted/30 text-foreground hover:bg-muted/50"
-                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {goal}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              disabled={!isLeader}
-              onClick={handleSaveSettings}
-              className={`w-full py-3 rounded-xl font-bold transition-all ${
-                isLeader
-                  ? "bg-primary text-white hover:scale-[1.02]"
-                  : "bg-muted/30 text-muted-foreground cursor-not-allowed"
-              }`}
-            >
-              {isLeader ? "Save Settings" : "View Only (Leader can Save)"}
-            </button>
           </div>
         </div>
 
-        {/* Card 3: Start Challenge */}
-        {isLeader && (
-          <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
+        <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+          <h1 className="text-2xl font-bold mb-6 text-foreground">Leader & Challenge Settings</h1>
+
+          {/* Card 1: Leader Nomination */}
+          <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
             <div className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                <h2 className="text-lg font-bold text-foreground">Group Leader</h2>
+              </div>
+              
+              <div className="space-y-2">
+                {currentGroup.members.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => handleNominateLeader(member.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      currentGroup.leaderId === member.id
+                        ? "bg-primary/20 border-2 border-primary"
+                        : "bg-muted/30 hover:bg-muted/50"
+                    }`}
+                  >
+                    <span className="text-2xl">{member.avatar}</span>
+                    <span className="font-semibold text-foreground flex-1 text-left">{member.name}</span>
+                    {currentGroup.leaderId === member.id && (
+                      <Crown className="w-5 h-5 text-yellow-500" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Challenge Settings */}
+          <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
+            <div className="relative">
+              <h2 className="text-lg font-bold text-foreground mb-4">Challenge Settings</h2>
+              
+              {!isLeader && (
+                <div className="mb-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 text-center">
+                  Only the leader can change these settings
+                </div>
+              )}
+
+              {/* Time Limit */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Time Limit</label>
+                <div className="flex gap-2">
+                  {["1w", "2w", "1m"].map((preset) => (
+                    <button
+                      key={preset}
+                      disabled={!isLeader}
+                      onClick={() => setTimePreset(preset as any)}
+                      className={`flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all ${
+                        timePreset === preset
+                          ? "bg-primary text-white"
+                          : "bg-muted/30 text-foreground hover:bg-muted/50"
+                      } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {preset === "1w" ? "1 Week" : preset === "2w" ? "2 Weeks" : "1 Month"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Money Pool */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-foreground">Money Pool</label>
+                  <button
+                    disabled={!isLeader}
+                    onClick={() => setPoolEnabled(!poolEnabled)}
+                    className={`w-12 h-6 rounded-full transition-all ${
+                      poolEnabled ? "bg-primary" : "bg-muted"
+                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white shadow-lg transition-transform ${
+                        poolEnabled ? "translate-x-6" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+                {poolEnabled && (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      disabled={!isLeader}
+                      value={poolAmount}
+                      onChange={(e) => setPoolAmount(Number(e.target.value))}
+                      className={`flex-1 px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
+                        !isLeader ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      placeholder="Amount"
+                    />
+                    <select
+                      disabled={!isLeader}
+                      value={poolCurrency}
+                      onChange={(e) => setPoolCurrency(e.target.value as any)}
+                      className={`px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
+                        !isLeader ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Main Goals */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-foreground mb-2 block">Main Goals</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableGoals.map((goal) => (
+                    <button
+                      key={goal}
+                      disabled={!isLeader}
+                      onClick={() => toggleGoal(goal)}
+                      className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedGoals.includes(goal)
+                          ? "bg-primary text-white"
+                          : "bg-muted/30 text-foreground hover:bg-muted/50"
+                      } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {goal}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
-                onClick={handleStartChallenge}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:scale-[1.02] transition-all shadow-lg"
+                disabled={!isLeader}
+                onClick={handleSaveSettings}
+                className={`w-full py-3 rounded-xl font-bold transition-all ${
+                  isLeader
+                    ? "bg-primary text-white hover:scale-[1.02]"
+                    : "bg-muted/30 text-muted-foreground cursor-not-allowed"
+                }`}
               >
-                Start Challenge
+                {isLeader ? "Save Settings" : "View Only (Leader can Save)"}
               </button>
             </div>
           </div>
-        )}
+
+          {/* Card 3: Start Challenge */}
+          {isLeader && (
+            <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
+              <div className="relative">
+                <button
+                  onClick={handleStartChallenge}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:scale-[1.02] transition-all shadow-lg"
+                >
+                  Start Challenge
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Leader Nomination Modal */}
         {showLeaderModal && (
