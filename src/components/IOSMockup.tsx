@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, Users2, Crown, Check, X, Calendar } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, Users2, Crown, Check, X, Calendar, Send, Zap, Smile, Reply, ThumbsUp, Laugh, Flame, Eye } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -17,6 +17,24 @@ type Group = {
   members: Member[];
   leaderId?: string;
   settings: ChallengeSettings;
+};
+
+type Message = {
+  id: string;
+  authorId?: string;
+  kind: "user" | "system";
+  text: string;
+  createdAt: string;
+  replyToId?: string;
+  reactions?: Record<string, number>;
+};
+
+type LiveStats = {
+  goalKeys: string[];
+  perMember: Record<string, { steps?: number; energy?: number; screen?: number; streak?: number; pctBelowAvg?: number }>;
+  groupTotals?: Record<string, number>;
+  timeLeft: string;
+  leaderId?: string;
 };
 
 const IOSMockup = () => {
@@ -52,6 +70,36 @@ const IOSMockup = () => {
   const [poolAmount, setPoolAmount] = useState(currentGroup.settings.pool?.amount || 0);
   const [poolCurrency, setPoolCurrency] = useState<"USD" | "EUR" | "GBP">(currentGroup.settings.pool?.currency || "USD");
   const [selectedGoals, setSelectedGoals] = useState<string[]>(currentGroup.settings.goals || []);
+  
+  // Chat state
+  const [messages, setMessages] = useState<Message[]>([
+    { id: "1", kind: "system", text: "Hayden nominated Alex as Leader", createdAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: "2", authorId: "2", kind: "user", text: "Let's crush this challenge! 💪", createdAt: new Date(Date.now() - 43200000).toISOString() },
+    { id: "3", authorId: "1", kind: "user", text: "I'm ready! Who's with me?", createdAt: new Date(Date.now() - 21600000).toISOString(), reactions: { "👍": 3, "🔥": 2 } },
+    { id: "4", kind: "system", text: "Leader set Time Limit: 2 Weeks; Pool: $250; Goals: Steps, Screen Time", createdAt: new Date(Date.now() - 10800000).toISOString() },
+    { id: "5", authorId: "3", kind: "user", text: "2k steps to go!", createdAt: new Date(Date.now() - 7200000).toISOString() },
+    { id: "6", authorId: "1", kind: "user", text: "You got this Sarah! 🔥", createdAt: new Date(Date.now() - 3600000).toISOString(), replyToId: "5" },
+  ]);
+  const [messageText, setMessageText] = useState("");
+  const [showCalloutMenu, setShowCalloutMenu] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const liveStats: LiveStats = {
+    goalKeys: ["Steps", "Screen Time"],
+    perMember: {
+      "1": { steps: 8500, screen: 18.5, streak: 5, pctBelowAvg: 0 },
+      "2": { steps: 12000, screen: 15.2, streak: 7, pctBelowAvg: -15 },
+      "3": { steps: 6200, screen: 22.7, streak: 3, pctBelowAvg: 12 },
+      "4": { steps: 9500, screen: 25.3, streak: 4, pctBelowAvg: 8 },
+      "5": { steps: 7800, screen: 28.1, streak: 2, pctBelowAvg: 18 },
+    },
+    groupTotals: { steps: 44000, screen: 109.8 },
+    timeLeft: "2d 4h",
+    leaderId: "2",
+  };
 
   const TabContent = () => {
     switch (activeTab) {
@@ -340,38 +388,297 @@ const IOSMockup = () => {
     );
   };
 
-  const ChatTab = () => (
-    <div className="flex-1 flex flex-col px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-foreground">Messages</h1>
-      <div className="flex-1 space-y-4 overflow-hidden">
-        <div className="glass-card rounded-[20px] p-4 hover:scale-[1.02] transition-transform">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white font-bold">
-              TS
+  const ChatTab = () => {
+    const quickChips = ["GG", "Nice run!", "Catch me if you can 😎"];
+    const reactions = ["👍", "👏", "😂", "🔥", "😴"];
+    
+    useEffect(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+    
+    const filterProfanity = (text: string) => {
+      const badWords = ["damn", "hell", "stupid", "idiot"]; // Basic filter
+      let filtered = text;
+      badWords.forEach(word => {
+        const regex = new RegExp(word, "gi");
+        filtered = filtered.replace(regex, "—");
+      });
+      return filtered;
+    };
+    
+    const sendMessage = (text: string) => {
+      const filtered = filterProfanity(text);
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        authorId: "1",
+        kind: "user",
+        text: filtered,
+        createdAt: new Date().toISOString(),
+        replyToId: replyingTo?.id,
+      };
+      setMessages([...messages, newMessage]);
+      setMessageText("");
+      setReplyingTo(null);
+      toast.success("Message sent!");
+    };
+    
+    const insertCallout = (kind: "props" | "nudge" | "flex") => {
+      const member = currentGroup.members.find(m => m.id === "2");
+      const stats = liveStats.perMember["2"];
+      const templates = {
+        props: `🔥 ${member?.name} is on a ${stats?.streak}-day streak — carrying the squad!`,
+        nudge: `👀 ${member?.name} is ${Math.abs(stats?.pctBelowAvg || 0)}% below avg on Steps… time to step it up?`,
+        flex: `💪 Group crushed Steps: ${liveStats.groupTotals?.steps} today! MVP: ${member?.name}.`,
+      };
+      setMessageText(templates[kind]);
+      setShowCalloutMenu(false);
+    };
+    
+    const reactToMessage = (messageId: string, emoji: string) => {
+      setMessages(messages.map(msg => {
+        if (msg.id === messageId) {
+          const reactions = msg.reactions || {};
+          reactions[emoji] = (reactions[emoji] || 0) + 1;
+          return { ...msg, reactions };
+        }
+        return msg;
+      }));
+      setShowReactionPicker(null);
+      toast.success("Reaction added!");
+    };
+    
+    const getMember = (id: string) => currentGroup.members.find(m => m.id === id);
+    const formatTime = (iso: string) => {
+      const date = new Date(iso);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const hours = Math.floor(diff / 3600000);
+      if (hours < 1) return "just now";
+      if (hours < 24) return `${hours}h ago`;
+      return `${Math.floor(hours / 24)}d ago`;
+    };
+    
+    return (
+      <div className="flex-1 flex flex-col">
+        {/* Sticky Challenge Summary */}
+        <div className="sticky top-0 z-10 px-6 pt-4 pb-2 backdrop-blur-xl bg-background/80">
+          <div className="glass-card rounded-2xl p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-primary" />
+                <p className="text-xs font-bold text-muted-foreground">Challenge Active</p>
+              </div>
+              <p className="text-xs font-bold text-primary">{liveStats.timeLeft} left</p>
             </div>
-            <div className="flex-1 text-left">
-              <p className="font-semibold text-foreground">The Squad</p>
-              <p className="text-sm text-muted-foreground truncate">Jake: Let's go! Who's ready...</p>
+            <div className="flex flex-wrap gap-2">
+              {currentGroup.members.map((member) => {
+                const stats = liveStats.perMember[member.id];
+                return (
+                  <button
+                    key={member.id}
+                    className="glass-card-inner rounded-xl px-3 py-1.5 text-xs hover:scale-105 transition-transform"
+                    onClick={() => toast.info(`${member.name}: ${stats?.steps || 0} steps, ${stats?.screen || 0}h screen`)}
+                  >
+                    <span className="mr-1">{member.avatar}</span>
+                    <span className="font-semibold">{member.name.split(" ")[0]}</span>
+                  </button>
+                );
+              })}
             </div>
-            <span className="text-xs text-muted-foreground">2h</span>
           </div>
         </div>
-
-        <div className="glass-card rounded-[20px] p-4 hover:scale-[1.02] transition-transform">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-              FC
+        
+        {/* Message List */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 pb-32">
+          {messages.map((msg) => {
+            const member = msg.authorId ? getMember(msg.authorId) : null;
+            const isMe = msg.authorId === "1";
+            const replyTo = msg.replyToId ? messages.find(m => m.id === msg.replyToId) : null;
+            
+            if (msg.kind === "system") {
+              return (
+                <div key={msg.id} className="flex justify-center">
+                  <div className="glass-card rounded-xl px-4 py-2 max-w-[80%]">
+                    <p className="text-xs text-muted-foreground text-center">{msg.text}</p>
+                  </div>
+                </div>
+              );
+            }
+            
+            return (
+              <div
+                key={msg.id}
+                className={`flex gap-2 ${isMe ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                onLongPress={() => setShowReactionPicker(msg.id)}
+              >
+                {!isMe && (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm flex-shrink-0">
+                    {member?.avatar}
+                  </div>
+                )}
+                <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%]`}>
+                  {!isMe && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs font-bold text-foreground">{member?.name}</p>
+                      {msg.authorId === currentGroup.leaderId && (
+                        <Crown className="w-3 h-3 text-primary" />
+                      )}
+                    </div>
+                  )}
+                  {replyTo && (
+                    <div className="glass-card-inner rounded-lg px-3 py-1.5 mb-1 max-w-full">
+                      <p className="text-[10px] text-muted-foreground">Replying to {getMember(replyTo.authorId!)?.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{replyTo.text}</p>
+                    </div>
+                  )}
+                  <div
+                    className={`rounded-2xl px-4 py-2 ${
+                      isMe
+                        ? "bg-primary text-primary-foreground"
+                        : "glass-card-inner"
+                    } relative`}
+                    onClick={() => setShowReactionPicker(msg.id)}
+                  >
+                    <p className={`text-sm ${isMe ? "text-primary-foreground" : "text-foreground"}`}>{msg.text}</p>
+                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                      <div className="flex gap-1 mt-2 flex-wrap">
+                        {Object.entries(msg.reactions).map(([emoji, count]) => (
+                          <div
+                            key={emoji}
+                            className="glass-card rounded-full px-2 py-0.5 text-xs flex items-center gap-1"
+                          >
+                            <span>{emoji}</span>
+                            <span className="text-[10px] font-bold">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">{formatTime(msg.createdAt)}</p>
+                  
+                  {/* Reaction Picker */}
+                  {showReactionPicker === msg.id && (
+                    <div className="glass-card rounded-2xl p-2 flex gap-2 mt-2 animate-in scale-in duration-200">
+                      {reactions.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => reactToMessage(msg.id, emoji)}
+                          className="text-xl hover:scale-125 transition-transform"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => {
+                          setReplyingTo(msg);
+                          setShowReactionPicker(null);
+                        }}
+                        className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform"
+                      >
+                        <Reply className="w-4 h-4 text-primary" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* Composer Bar */}
+        <div className="fixed bottom-20 left-0 right-0 px-6 pb-4 backdrop-blur-xl bg-background/90">
+          {replyingTo && (
+            <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Reply className="w-3 h-3 text-primary" />
+                <p className="text-xs text-muted-foreground">
+                  Replying to {getMember(replyingTo.authorId!)?.name}: "{replyingTo.text.slice(0, 30)}..."
+                </p>
+              </div>
+              <button onClick={() => setReplyingTo(null)}>
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
             </div>
-            <div className="flex-1 text-left">
-              <p className="font-semibold text-foreground">Family Challenge</p>
-              <p className="text-sm text-muted-foreground truncate">Mom: Great progress everyone!</p>
-            </div>
-            <span className="text-xs text-muted-foreground">1d</span>
+          )}
+          
+          {/* Quick Chips */}
+          <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
+            {quickChips.map((chip) => (
+              <button
+                key={chip}
+                onClick={() => setMessageText(chip)}
+                className="glass-card-inner rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap hover:scale-105 transition-transform"
+              >
+                {chip}
+              </button>
+            ))}
+            <button
+              onClick={() => setMessageText(`💪 Group crushed Steps: ${liveStats.groupTotals?.steps} today!`)}
+              className="glass-card rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30 hover:scale-105 transition-transform"
+            >
+              📊 Group Stats
+            </button>
+          </div>
+          
+          <div className="glass-card rounded-2xl p-3 flex items-center gap-3">
+            <button
+              onClick={() => setShowCalloutMenu(!showCalloutMenu)}
+              className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform relative"
+            >
+              <Zap className="w-5 h-5 text-primary" />
+              {showCalloutMenu && (
+                <div className="absolute bottom-full left-0 mb-2 glass-card rounded-xl p-2 space-y-1 min-w-[120px] animate-in fade-in scale-in duration-200">
+                  <button
+                    onClick={() => insertCallout("props")}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                  >
+                    🔥 Props
+                  </button>
+                  <button
+                    onClick={() => insertCallout("nudge")}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                  >
+                    👀 Nudge
+                  </button>
+                  <button
+                    onClick={() => insertCallout("flex")}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                  >
+                    💪 Flex
+                  </button>
+                </div>
+              )}
+            </button>
+            
+            <input
+              type="text"
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && messageText.trim() && sendMessage(messageText)}
+              placeholder="Send a message..."
+              className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+            />
+            
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform"
+            >
+              <Smile className="w-5 h-5 text-primary" />
+            </button>
+            
+            <button
+              onClick={() => messageText.trim() && sendMessage(messageText)}
+              disabled={!messageText.trim()}
+              className="bg-primary rounded-full p-2 hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send className="w-5 h-5 text-primary-foreground" />
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const GroupTab = () => {
     const groups = [
@@ -710,9 +1017,10 @@ const IOSMockup = () => {
   };
 
   const StatsTab = () => (
-    <div className="flex-1 flex flex-col px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-foreground">Your Stats</h1>
-      <div className="space-y-4">
+    <div className="flex-1 flex flex-col">
+      <div className="px-6 py-8 pb-28 overflow-y-auto">
+        <h1 className="text-3xl font-bold mb-6 text-foreground">Your Stats</h1>
+        <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-6">
           <div className="flex items-center justify-center mb-4">
             <div className="relative w-32 h-32">
@@ -779,43 +1087,47 @@ const IOSMockup = () => {
   );
 
   const ProfileTab = () => (
-    <div className="flex-1 flex flex-col items-center px-6 py-8">
-      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
-        JD
-      </div>
-      <h2 className="text-2xl font-bold text-foreground mb-2">John Doe</h2>
-      <p className="text-sm text-muted-foreground mb-8">@johndoe</p>
+    <div className="flex-1 flex flex-col">
+      <div className="px-6 py-8 pb-28 overflow-y-auto">
+        <div className="flex flex-col items-center">
+          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
+            JD
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">John Doe</h2>
+          <p className="text-sm text-muted-foreground mb-8">@johndoe</p>
 
-      <div className="w-full max-w-sm space-y-4">
-        <div className="glass-card rounded-[20px] p-5">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm text-muted-foreground">Member Since</span>
-            <span className="text-sm font-semibold text-foreground">Jan 2025</span>
-          </div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm text-muted-foreground">Total Challenges</span>
-            <span className="text-sm font-semibold text-foreground">12</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Wins</span>
-            <span className="text-sm font-semibold text-[#1E90FF]">5 🏆</span>
-          </div>
-        </div>
+          <div className="w-full max-w-sm space-y-4">
+            <div className="glass-card rounded-[20px] p-5">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm text-muted-foreground">Member Since</span>
+                <span className="text-sm font-semibold text-foreground">Jan 2025</span>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm text-muted-foreground">Total Challenges</span>
+                <span className="text-sm font-semibold text-foreground">12</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Wins</span>
+                <span className="text-sm font-semibold text-[#1E90FF]">5 🏆</span>
+              </div>
+            </div>
 
-        <div className="glass-card rounded-[20px] p-5">
-          <p className="text-sm text-muted-foreground mb-3">Achievements</p>
-          <div className="flex gap-3">
-            <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
-              <span className="text-3xl mb-2 block">🔥</span>
-              <p className="text-xs text-muted-foreground">7 Day Streak</p>
-            </div>
-            <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
-              <span className="text-3xl mb-2 block">⭐</span>
-              <p className="text-xs text-muted-foreground">First Win</p>
-            </div>
-            <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
-              <span className="text-3xl mb-2 block">💎</span>
-              <p className="text-xs text-muted-foreground">Pro Member</p>
+            <div className="glass-card rounded-[20px] p-5">
+              <p className="text-sm text-muted-foreground mb-3">Achievements</p>
+              <div className="flex gap-3">
+                <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
+                  <span className="text-3xl mb-2 block">🔥</span>
+                  <p className="text-xs text-muted-foreground">7 Day Streak</p>
+                </div>
+                <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
+                  <span className="text-3xl mb-2 block">⭐</span>
+                  <p className="text-xs text-muted-foreground">First Win</p>
+                </div>
+                <div className="flex-1 text-center glass-card-inner rounded-[15px] p-4">
+                  <span className="text-3xl mb-2 block">💎</span>
+                  <p className="text-xs text-muted-foreground">Pro Member</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -824,9 +1136,10 @@ const IOSMockup = () => {
   );
 
   const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
-    <div className="flex-1 flex flex-col px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-foreground">Settings</h1>
-      <div className="space-y-4">
+    <div className="flex-1 flex flex-col">
+      <div className="px-6 py-8 pb-28 overflow-y-auto">
+        <h1 className="text-3xl font-bold mb-6 text-foreground">Settings</h1>
+        <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-5">
           <div className="flex items-center justify-between">
             <div>
@@ -872,6 +1185,7 @@ const IOSMockup = () => {
           Sign Out
         </button>
       </div>
+    </div>
     </div>
   );
 
