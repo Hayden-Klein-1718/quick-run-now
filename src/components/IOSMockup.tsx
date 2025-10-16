@@ -1485,7 +1485,7 @@ const IOSMockup = () => {
     <div className="min-h-screen w-full bg-background flex items-center justify-center p-4">
       <div 
         className="w-full max-w-[430px] h-[932px] bg-background rounded-[60px] shadow-2xl overflow-hidden flex flex-col relative border-[14px] border-gray-800 dark:border-gray-900"
-        style={{ transform: 'scale(0.85)', transformOrigin: 'center' }}
+        style={{ transform: 'scale(0.80)', transformOrigin: 'center' }}
       >
         {/* Status Bar */}
         <div className="h-12 flex items-center justify-between px-8 text-xs font-semibold text-foreground bg-background">
