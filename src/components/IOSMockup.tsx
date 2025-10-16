@@ -1475,9 +1475,9 @@ const IOSMockup = () => {
 
   const tabs = [
     { id: "home", label: "Home", icon: Home },
-    { id: "chat", label: "Chat", icon: MessageCircle },
     { id: "group", label: "Group", icon: Users2 },
     { id: "stats", label: "Stats", icon: BarChart3 },
+    { id: "chat", label: "Chat", icon: MessageCircle },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
