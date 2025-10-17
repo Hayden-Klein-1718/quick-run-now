@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Search, Plus, Send, X, TrendingUp, Trophy, Flame, Dices, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { toast } from "@/hooks/use-toast";
 
 interface Friend {
@@ -165,7 +163,7 @@ export function FriendsScreenSocialV3({
   };
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="relative space-y-4 pb-20">
       {/* Search & Discover */}
       <div className="glass-card rounded-xl p-4">
         <div className="relative">
@@ -324,117 +322,127 @@ export function FriendsScreenSocialV3({
       {/* FAB */}
       <Button
         size="icon"
-        className="fixed top-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
+        className="absolute top-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
         onClick={() => setShowChallengeModal(true)}
       >
         <Plus className="w-6 h-6" />
       </Button>
 
       {/* Challenge Modal */}
-      <Dialog open={showChallengeModal} onOpenChange={setShowChallengeModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {challengeStep === "select-friends" ? "Select Friends" : "Choose Challenge"}
-            </DialogTitle>
-          </DialogHeader>
-
-          {challengeStep === "select-friends" ? (
-            <div className="space-y-3">
-              {friends.map((friend) => (
-                <div
-                  key={friend.id}
-                  onClick={() => {
-                    setSelectedFriends((prev) =>
-                      prev.includes(friend.id)
-                        ? prev.filter((id) => id !== friend.id)
-                        : [...prev, friend.id]
-                    );
-                  }}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedFriends.includes(friend.id)
-                      ? "bg-primary/20 border-2 border-primary"
-                      : "bg-secondary/20 border-2 border-transparent"
-                  }`}
-                >
-                  <span className="text-2xl">{friend.avatar}</span>
-                  <span className="font-medium">{friend.name}</span>
-                </div>
-              ))}
-              <Button
-                className="w-full"
-                disabled={selectedFriends.length === 0}
-                onClick={() => setChallengeStep("choose-challenge")}
-              >
-                Next
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {challengePresets.map((preset) => (
-                <div
-                  key={preset.id}
-                  onClick={() => handleStartChallenge(preset.id)}
-                  className="p-3 bg-secondary/20 rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors"
-                >
-                  <p className="font-medium text-sm">{preset.name}</p>
-                  <p className="text-xs text-muted-foreground">{preset.description}</p>
-                </div>
-              ))}
-              <Button
-                variant="ghost"
-                className="w-full mt-2"
+      {showChallengeModal && (
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="glass-card rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground">
+                {challengeStep === "select-friends" ? "Select Friends" : "Choose Challenge"}
+              </h2>
+              <button
                 onClick={() => {
+                  setShowChallengeModal(false);
                   setChallengeStep("select-friends");
                   setSelectedFriends([]);
                 }}
+                className="text-muted-foreground hover:text-foreground"
               >
-                Back
-              </Button>
+                <X className="w-6 h-6" />
+              </button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
-      {/* Chat Drawer */}
-      <Drawer open={!!activeChatThread} onOpenChange={(open) => !open && setActiveChatThread(null)}>
-        <DrawerContent className="max-h-[80vh]">
-          <DrawerHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <DrawerTitle className="flex items-center gap-2">
-                <span className="text-2xl">{activeChatThread?.friendAvatar}</span>
-                {activeChatThread?.friendName}
-              </DrawerTitle>
-              <DrawerClose asChild>
-                <Button variant="ghost" size="icon">
-                  <X className="w-4 h-4" />
-                </Button>
-              </DrawerClose>
-            </div>
-          </DrawerHeader>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {activeChatThread &&
-              messagesByThread[activeChatThread.id]?.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.senderId === "me" ? "justify-end" : "justify-start"}`}
-                >
+            {challengeStep === "select-friends" ? (
+              <div className="space-y-3">
+                {friends.map((friend) => (
                   <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                      msg.senderId === "me"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary"
+                    key={friend.id}
+                    onClick={() => {
+                      setSelectedFriends((prev) =>
+                        prev.includes(friend.id)
+                          ? prev.filter((id) => id !== friend.id)
+                          : [...prev, friend.id]
+                      );
+                    }}
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedFriends.includes(friend.id)
+                        ? "bg-primary/20 border-2 border-primary"
+                        : "bg-secondary/20 border-2 border-transparent"
                     }`}
                   >
-                    <p className="text-sm">{msg.text}</p>
-                    <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
+                    <span className="text-2xl">{friend.avatar}</span>
+                    <span className="font-medium">{friend.name}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+                <Button
+                  className="w-full"
+                  disabled={selectedFriends.length === 0}
+                  onClick={() => setChallengeStep("choose-challenge")}
+                >
+                  Next
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {challengePresets.map((preset) => (
+                  <div
+                    key={preset.id}
+                    onClick={() => handleStartChallenge(preset.id)}
+                    className="p-3 bg-secondary/20 rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors"
+                  >
+                    <p className="font-medium text-sm">{preset.name}</p>
+                    <p className="text-xs text-muted-foreground">{preset.description}</p>
+                  </div>
+                ))}
+                <Button
+                  variant="ghost"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    setChallengeStep("select-friends");
+                    setSelectedFriends([]);
+                  }}
+                >
+                  Back
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Chat Drawer */}
+      {activeChatThread && (
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex flex-col">
+          <div className="border-b p-4 flex items-center justify-between bg-background">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{activeChatThread.friendAvatar}</span>
+              <h2 className="text-lg font-bold">{activeChatThread.friendName}</h2>
+            </div>
+            <button
+              onClick={() => setActiveChatThread(null)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
-          <div className="border-t p-4 flex gap-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messagesByThread[activeChatThread.id]?.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.senderId === "me" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                    msg.senderId === "me"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary"
+                  }`}
+                >
+                  <p className="text-sm">{msg.text}</p>
+                  <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t p-4 flex gap-2 bg-background">
             <Input
               placeholder="Type a message..."
               value={messageInput}
@@ -445,8 +453,8 @@ export function FriendsScreenSocialV3({
               <Send className="w-4 h-4" />
             </Button>
           </div>
-        </DrawerContent>
-      </Drawer>
+        </div>
+      )}
     </div>
   );
 }
