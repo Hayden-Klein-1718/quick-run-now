@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, Users2, Crown, Check, X, Calendar, Send, Zap, Smile, Reply, ThumbsUp, Laugh, Flame, Eye } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight, Users2, Crown, Check, X, Calendar, Send, Zap, Smile, Reply, ThumbsUp, Laugh, Flame, Eye, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -159,6 +159,8 @@ const IOSMockup = () => {
         return <GroupTab />;
       case "stats":
         return <StatsTab />;
+      case "friends":
+        return <FriendsTab />;
       case "profile":
         return <ProfileTab />;
       case "settings":
@@ -1418,6 +1420,214 @@ const IOSMockup = () => {
     </div>
   );
 
+  const FriendsTab = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showChallengeModal, setShowChallengeModal] = useState(false);
+    const [selectedFriend, setSelectedFriend] = useState<{ name: string; id: string } | null>(null);
+
+    const friends = [
+      {
+        id: "f1",
+        name: "Jake H.",
+        avatar: "🟢",
+        winnings: 250,
+        avgScreenTime: "2h 15m",
+        sparklineData: [3.2, 2.8, 2.1, 2.5, 2.3, 2.0, 2.4],
+      },
+      {
+        id: "f2",
+        name: "Sarah M.",
+        avatar: "🟣",
+        winnings: 180,
+        avgScreenTime: "1h 45m",
+        sparklineData: [2.5, 2.2, 1.8, 1.5, 1.9, 1.7, 1.6],
+      },
+      {
+        id: "f3",
+        name: "Mike T.",
+        avatar: "🟠",
+        winnings: 320,
+        avgScreenTime: "3h 10m",
+        sparklineData: [3.8, 3.5, 3.2, 3.0, 3.3, 3.1, 2.9],
+      },
+      {
+        id: "f4",
+        name: "Emma L.",
+        avatar: "🟡",
+        winnings: 140,
+        avgScreenTime: "1h 30m",
+        sparklineData: [2.0, 1.8, 1.5, 1.4, 1.6, 1.5, 1.3],
+      },
+    ];
+
+    const discoverUsers = [
+      { id: "d1", name: "Alex K.", avatar: "🔴" },
+      { id: "d2", name: "Jordan P.", avatar: "🔵" },
+    ];
+
+    const challenges = [
+      { id: "c1", title: "1v1 for the weekend", description: "Lowest total screen time from Fri–Sun wins" },
+      { id: "c2", title: "Weekday Detox (Mon–Fri)", description: "Keep average under 2h/day" },
+      { id: "c3", title: "Daily 2h Cap (tomorrow)", description: "If you pass 120 minutes, you lose" },
+      { id: "c4", title: "No Social 6–9pm", description: "No use of social apps during 6–9 PM" },
+      { id: "c5", title: "Create Custom Challenge…", description: "Set your own rules" },
+    ];
+
+    const handleQuickChallenge = (friend: { name: string; id: string }) => {
+      setSelectedFriend(friend);
+      setShowChallengeModal(true);
+    };
+
+    const handleChallengeCreate = (challengeId: string) => {
+      console.log("Creating challenge:", challengeId, "with friend:", selectedFriend);
+      toast.success(`Challenge sent to ${selectedFriend?.name}!`);
+      setShowChallengeModal(false);
+    };
+
+    const handleAddFriend = (user: { id: string; name: string; avatar: string }) => {
+      console.log("Adding friend:", user);
+      toast.success(`Friend request sent to ${user.name}!`);
+    };
+
+    const Sparkline = ({ data }: { data: number[] }) => {
+      const max = Math.max(...data);
+      const min = Math.min(...data);
+      const range = max - min || 1;
+      const width = 60;
+      const height = 20;
+
+      const points = data
+        .map((val, i) => {
+          const x = (i / (data.length - 1)) * width;
+          const y = height - ((val - min) / range) * height;
+          return `${x},${y}`;
+        })
+        .join(" ");
+
+      return (
+        <svg width={width} height={height} className="inline-block">
+          <polyline
+            points={points}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-[#1E90FF]"
+          />
+        </svg>
+      );
+    };
+
+    const filteredFriends = friends.filter((f) =>
+      f.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const filteredDiscover = discoverUsers.filter((u) =>
+      u.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: "touch" }}>
+          <h1 className="text-3xl font-bold text-primary mb-6 italic">Friends</h1>
+
+          {/* Search Bar */}
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search friends or discover new contacts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+            />
+          </div>
+
+          {/* Friends List */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground mb-3">Your Friends</h2>
+            {filteredFriends.map((friend) => (
+              <div key={friend.id} className="glass-card rounded-xl p-4">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">{friend.avatar}</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground text-base">{friend.name}</h3>
+                    <p className="text-sm text-muted-foreground">Lifetime: ${friend.winnings}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-muted-foreground">Avg: {friend.avgScreenTime}/day</span>
+                      <Sparkline data={friend.sparklineData} />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleQuickChallenge(friend)}
+                    className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    Quick Challenge
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Discover Section */}
+          {searchQuery && filteredDiscover.length > 0 && (
+            <div className="space-y-4 mt-8">
+              <h2 className="text-lg font-semibold text-foreground mb-3">Discover</h2>
+              {filteredDiscover.map((user) => (
+                <div key={user.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">{user.avatar}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground">{user.name}</h3>
+                      <p className="text-sm text-muted-foreground">New contact</p>
+                    </div>
+                    <button
+                      onClick={() => handleAddFriend(user)}
+                      className="px-3 py-1.5 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Challenge Modal */}
+        {showChallengeModal && (
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+            <div className="glass-card rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">
+                  Challenge {selectedFriend?.name}
+                </h2>
+                <button
+                  onClick={() => setShowChallengeModal(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">Choose a challenge preset:</p>
+              <div className="space-y-3">
+                {challenges.map((challenge) => (
+                  <button
+                    key={challenge.id}
+                    onClick={() => handleChallengeCreate(challenge.id)}
+                    className="w-full text-left glass-card-inner rounded-xl p-4 hover:bg-accent/50 transition-colors"
+                  >
+                    <h3 className="font-semibold text-foreground text-sm mb-1">
+                      {challenge.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">{challenge.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -1477,6 +1687,7 @@ const IOSMockup = () => {
     { id: "home", label: "Home", icon: Home },
     { id: "group", label: "Group", icon: Users2 },
     { id: "stats", label: "Stats", icon: BarChart3 },
+    { id: "friends", label: "Friends", icon: UserPlus },
     { id: "chat", label: "Chat", icon: MessageCircle },
     { id: "settings", label: "Settings", icon: Settings },
   ];
