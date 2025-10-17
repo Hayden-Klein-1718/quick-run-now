@@ -330,8 +330,8 @@ export function FriendsScreenSocialV3({
 
       {/* Challenge Modal */}
       {showChallengeModal && (
-        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="glass-card rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto">
+          <div className="glass-card rounded-2xl p-6 w-full max-w-md my-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-foreground">
                 {challengeStep === "select-friends" ? "Select Friends" : "Choose Challenge"}
