@@ -324,7 +324,7 @@ export function FriendsScreenSocialV3({
       {/* FAB */}
       <Button
         size="icon"
-        className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg"
+        className="fixed top-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
         onClick={() => setShowChallengeModal(true)}
       >
         <Plus className="w-6 h-6" />
