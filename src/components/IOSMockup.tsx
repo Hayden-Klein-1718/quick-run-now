@@ -1233,7 +1233,26 @@ const IOSMockup = () => {
             </div>
           )}
 
-          {/* Card 2: Leader Nomination */}
+          {/* Card 2: Challenge Settings */}
+          <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
+            <div className="relative">
+              <h2 className="text-lg font-bold text-foreground mb-4">Challenge Settings</h2>
+              <button
+                disabled={!isLeader}
+                onClick={handleSaveSettings}
+                className={`w-full py-3 rounded-xl font-bold transition-all ${
+                  isLeader
+                    ? "bg-primary text-white hover:scale-[1.02]"
+                    : "bg-muted/30 text-muted-foreground cursor-not-allowed"
+                }`}
+              >
+                {isLeader ? "Save Settings" : "View Only (Leader can Save)"}
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: Leader Nomination */}
           <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
             <div className="relative">
@@ -1261,120 +1280,6 @@ const IOSMockup = () => {
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Card 3: Challenge Settings */}
-          <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
-            <div className="relative">
-              <h2 className="text-lg font-bold text-foreground mb-4">Challenge Settings</h2>
-              
-              {!isLeader && (
-                <div className="mb-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 text-center">
-                  Only the leader can change these settings
-                </div>
-              )}
-
-              {/* Time Limit */}
-              <div className="mb-4">
-                <label className="text-sm font-semibold text-foreground mb-2 block">Time Limit</label>
-                <div className="flex gap-2">
-                  {["1w", "2w", "1m"].map((preset) => (
-                    <button
-                      key={preset}
-                      disabled={!isLeader}
-                      onClick={() => setTimePreset(preset as any)}
-                      className={`flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all ${
-                        timePreset === preset
-                          ? "bg-primary text-white"
-                          : "bg-muted/30 text-foreground hover:bg-muted/50"
-                      } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      {preset === "1w" ? "1 Week" : preset === "2w" ? "2 Weeks" : "1 Month"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Money Pool */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-foreground">Money Pool</label>
-                  <button
-                    disabled={!isLeader}
-                    onClick={() => setPoolEnabled(!poolEnabled)}
-                    className={`w-12 h-6 rounded-full transition-all ${
-                      poolEnabled ? "bg-primary" : "bg-muted"
-                    } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full bg-white shadow-lg transition-transform ${
-                        poolEnabled ? "translate-x-6" : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
-                </div>
-                {poolEnabled && (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      disabled={!isLeader}
-                      value={poolAmount}
-                      onChange={(e) => setPoolAmount(Number(e.target.value))}
-                      className={`flex-1 px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
-                        !isLeader ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      placeholder="Amount"
-                    />
-                    <select
-                      disabled={!isLeader}
-                      value={poolCurrency}
-                      onChange={(e) => setPoolCurrency(e.target.value as any)}
-                      className={`px-3 py-2 rounded-xl bg-muted/30 text-foreground font-semibold ${
-                        !isLeader ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {/* Main Goals */}
-              <div className="mb-4">
-                <label className="text-sm font-semibold text-foreground mb-2 block">Main Goals</label>
-                <div className="flex flex-wrap gap-2">
-                  {availableGoals.map((goal) => (
-                    <button
-                      key={goal}
-                      disabled={!isLeader}
-                      onClick={() => toggleGoal(goal)}
-                      className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                        selectedGoals.includes(goal)
-                          ? "bg-primary text-white"
-                          : "bg-muted/30 text-foreground hover:bg-muted/50"
-                      } ${!isLeader ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      {goal}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                disabled={!isLeader}
-                onClick={handleSaveSettings}
-                className={`w-full py-3 rounded-xl font-bold transition-all ${
-                  isLeader
-                    ? "bg-primary text-white hover:scale-[1.02]"
-                    : "bg-muted/30 text-muted-foreground cursor-not-allowed"
-                }`}
-              >
-                {isLeader ? "Save Settings" : "View Only (Leader can Save)"}
-              </button>
             </div>
           </div>
 
