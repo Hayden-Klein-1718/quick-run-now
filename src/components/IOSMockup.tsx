@@ -1042,6 +1042,33 @@ const IOSMockup = () => {
       { name: "Work", icon: "💼", members: 12 },
     ];
 
+    // Mock leaderboard data for each group
+    const groupLeaderboards: Record<string, Array<{ id: number; name: string; score: number; rank: number; avatar: string }>> = {
+      "Friends": [
+        { id: 1, name: "Jake H.", score: 85, rank: 1, avatar: "🟢" },
+        { id: 2, name: "You", score: 76, rank: 2, avatar: "🔵" },
+        { id: 3, name: "Sarah M.", score: 72, rank: 3, avatar: "🟣" },
+        { id: 4, name: "Mike T.", score: 68, rank: 4, avatar: "🟠" },
+        { id: 5, name: "Emma L.", score: 61, rank: 5, avatar: "🟡" },
+      ],
+      "Family": [
+        { id: 1, name: "Mom", score: 92, rank: 1, avatar: "💐" },
+        { id: 2, name: "You", score: 82, rank: 2, avatar: "🔵" },
+        { id: 3, name: "Dad", score: 78, rank: 3, avatar: "👔" },
+        { id: 4, name: "Sister", score: 70, rank: 4, avatar: "🌸" },
+      ],
+      "Work": [
+        { id: 1, name: "Alex C.", score: 88, rank: 1, avatar: "💼" },
+        { id: 2, name: "Jordan P.", score: 84, rank: 2, avatar: "📊" },
+        { id: 3, name: "You", score: 71, rank: 3, avatar: "🔵" },
+        { id: 4, name: "Taylor R.", score: 67, rank: 4, avatar: "💻" },
+        { id: 5, name: "Morgan L.", score: 65, rank: 5, avatar: "📱" },
+        { id: 6, name: "Casey M.", score: 59, rank: 6, avatar: "⌨️" },
+      ],
+    };
+
+    const currentLeaderboard = groupLeaderboards[currentGroup.name] || groupLeaderboards["Friends"];
+
     const isLeader = currentGroup.leaderId === "1"; // Assuming user ID is "1"
     const leader = currentGroup.members.find(m => m.id === currentGroup.leaderId);
     const availableGoals = ["Screen Time", "Steps", "Energy", "Water Intake", "Sleep"];
@@ -1301,7 +1328,7 @@ const IOSMockup = () => {
 
           {/* Card 3: Start Challenge */}
           {isLeader && (
-            <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
               <div className="relative">
                 <button
@@ -1313,6 +1340,49 @@ const IOSMockup = () => {
               </div>
             </div>
           )}
+
+          {/* Leaderboard for Current Group */}
+          <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+            <div className="relative">
+              <h2 className="text-lg font-bold text-foreground mb-4">{currentGroup.name} Leaderboard</h2>
+              <div className="space-y-3">
+                {currentLeaderboard.map((person) => {
+                  const getScoreColor = (score: number) => {
+                    if (score >= 80) return "text-green-500";
+                    if (score >= 60) return "text-yellow-500";
+                    return "text-red-500";
+                  };
+
+                  return (
+                    <div
+                      key={person.id}
+                      className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
+                        person.name === "You"
+                          ? "bg-primary/20 border-2 border-primary"
+                          : "bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl font-bold text-muted-foreground w-6">
+                          #{person.rank}
+                        </span>
+                        <span className="text-3xl">{person.avatar}</span>
+                        <span className={`font-bold ${
+                          person.name === "You" ? "text-primary" : "text-foreground"
+                        }`}>
+                          {person.name}
+                        </span>
+                      </div>
+                      <span className={`text-2xl font-bold ${getScoreColor(person.score)}`}>
+                        {person.score}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Leader Nomination Modal */}
@@ -1769,9 +1839,9 @@ const IOSMockup = () => {
 
   const tabs = [
     { id: "home", label: "Home", icon: Home },
+    { id: "stats", label: "Stats", icon: BarChart3 },
     { id: "group", label: "Group", icon: Users2 },
     { id: "friends", label: "Friends", icon: UserPlus },
-    { id: "stats", label: "Stats", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
