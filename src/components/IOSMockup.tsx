@@ -157,12 +157,12 @@ const IOSMockup = () => {
     switch (activeTab) {
       case "home":
         return <HomeTab />;
+      case "group":
+        return <GroupTab />;
       case "stats":
         return <StatsTab />;
       case "friends":
         return <FriendsTab />;
-      case "profile":
-        return <ProfileTab />;
       case "settings":
         return <SettingsTab theme={theme} setTheme={setTheme} />;
       default:
@@ -1539,18 +1539,21 @@ const IOSMockup = () => {
     );
   };
 
-  const ProfileTab = () => (
+
+  const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h1 className="text-xl font-bold text-primary mb-6 italic">Analog</h1>
-        <div className="flex flex-col items-center">
+        <h1 className="text-5xl font-bold text-primary mb-8 text-center italic">Analog</h1>
+        
+        {/* Profile Section */}
+        <div className="flex flex-col items-center mb-8">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#4169E1] flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
             JD
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">John Doe</h2>
-          <p className="text-sm text-muted-foreground mb-8">@johndoe</p>
+          <p className="text-sm text-muted-foreground mb-6">@johndoe</p>
 
-          <div className="w-full max-w-sm space-y-4">
+          <div className="w-full max-w-sm space-y-4 mb-8">
             <div className="glass-card rounded-[20px] p-5">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-sm text-muted-foreground">Member Since</span>
@@ -1585,15 +1588,8 @@ const IOSMockup = () => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
 
-
-  const SettingsTab = ({ theme, setTheme }: { theme: string | undefined; setTheme: (theme: string) => void }) => (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h1 className="text-5xl font-bold text-primary mb-8 text-center italic">Analog</h1>
+        {/* Settings Section */}
         <h2 className="text-2xl font-bold text-foreground mb-6">Settings</h2>
         <div className="space-y-4">
         <div className="glass-card rounded-[20px] p-5">
@@ -1647,9 +1643,9 @@ const IOSMockup = () => {
 
   const tabs = [
     { id: "home", label: "Home", icon: Home },
+    { id: "group", label: "Group", icon: Users2 },
     { id: "friends", label: "Friends", icon: UserPlus },
     { id: "stats", label: "Stats", icon: BarChart3 },
-    { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
