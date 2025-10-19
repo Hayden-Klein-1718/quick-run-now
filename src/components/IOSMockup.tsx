@@ -152,6 +152,16 @@ const IOSMockup = () => {
   };
 
   const [showChatSheet, setShowChatSheet] = useState(false);
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+  const [showGroupRankModal, setShowGroupRankModal] = useState(false);
+  
+  // Mock groups data for rank selector
+  const userGroups = [
+    { id: "friends", name: "Friends", rank: 2, total: 5, score: 76 },
+    { id: "family", name: "Family", rank: 1, total: 4, score: 82 },
+    { id: "work", name: "Work Squad", rank: 3, total: 6, score: 71 },
+    { id: "gym", name: "Gym Buddies", rank: 2, total: 3, score: 79 },
+  ];
 
   const TabContent = () => {
     switch (activeTab) {
@@ -198,14 +208,18 @@ const IOSMockup = () => {
             <ScoreRing score={screenTimeScore} delta={scoreDelta} size={260} />
           </div>
 
-          {/* Your Rank Card */}
-          <div className="glass-card rounded-3xl p-6 mb-6 text-center">
+          {/* Your Rank Card - Clickable */}
+          <button 
+            onClick={() => setShowGroupRankModal(true)}
+            className="glass-card rounded-3xl p-6 mb-6 text-center w-full hover:scale-[1.02] transition-transform"
+          >
             <p className="text-sm text-muted-foreground mb-2">Your Rank vs Friends</p>
             <div className="flex items-center justify-center gap-3">
               <span className="text-5xl font-bold text-foreground">#2</span>
               <span className="text-lg text-muted-foreground">of 5</span>
             </div>
-          </div>
+            <p className="text-xs text-primary mt-2">Tap to view all groups</p>
+          </button>
 
           {/* Leaderboard */}
           <div className="glass-card rounded-3xl p-6">
@@ -247,6 +261,62 @@ const IOSMockup = () => {
             </div>
           </div>
         </div>
+
+        {/* Group Rank Modal */}
+        {showGroupRankModal && (
+          <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowGroupRankModal(false)}>
+            <div 
+              className="w-full bg-background rounded-t-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300"
+              style={{ height: '60vh' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex-shrink-0 px-6 pt-4 pb-2 border-b border-border">
+                <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-4" />
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-foreground">Your Rankings</h2>
+                  <button
+                    onClick={() => setShowGroupRankModal(false)}
+                    className="p-2 rounded-full hover:bg-muted transition-colors"
+                  >
+                    <X className="w-5 h-5 text-foreground" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {userGroups.map((group) => {
+                  const getScoreColor = (score: number) => {
+                    if (score >= 80) return "text-green-500";
+                    if (score >= 60) return "text-yellow-500";
+                    return "text-red-500";
+                  };
+
+                  return (
+                    <div key={group.id} className="glass-card rounded-3xl p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-bold text-foreground">{group.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            #{group.rank} of {group.total}
+                          </p>
+                        </div>
+                        <span className={`text-3xl font-bold ${getScoreColor(group.score)}`}>
+                          {group.score}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${(group.rank / group.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -343,6 +413,12 @@ const IOSMockup = () => {
         <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-primary italic">Analog</h1>
+            <button
+              onClick={() => setShowAddFriendModal(true)}
+              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:scale-110 transition-transform"
+            >
+              <UserPlus className="w-5 h-5 text-primary-foreground" />
+            </button>
           </div>
         </div>
 
@@ -515,93 +591,143 @@ const IOSMockup = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Composer Bar - Fixed at bottom of sheet */}
-              <div className="flex-shrink-0 px-6 py-3 border-t border-border bg-background">
+              {/* Composer - Fixed at Bottom of Sheet */}
+              <div className="flex-shrink-0 px-6 py-4 border-t border-border bg-background">
                 {replyingTo && (
-                  <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Reply className="w-3 h-3 text-primary" />
-                      <p className="text-xs text-muted-foreground">
-                        Replying to {getMember(replyingTo.authorId!)?.name}: "{replyingTo.text.slice(0, 30)}..."
-                      </p>
+                  <div className="glass-card-inner rounded-xl px-3 py-2 mb-2 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Replying to {getMember(replyingTo.authorId!)?.name}</p>
+                      <p className="text-xs text-foreground truncate max-w-[200px]">{replyingTo.text}</p>
                     </div>
-                    <button onClick={() => setReplyingTo(null)}>
-                      <X className="w-4 h-4 text-muted-foreground" />
+                    <button onClick={() => setReplyingTo(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 )}
-                
-                <div className="flex gap-2 mb-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 mb-2">
                   {quickChips.map((chip) => (
                     <button
                       key={chip}
                       onClick={() => setMessageText(chip)}
-                      className="glass-card-inner rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap hover:scale-105 transition-transform"
+                      className="glass-card-inner rounded-full px-3 py-1 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       {chip}
                     </button>
                   ))}
-                  <button
-                    onClick={() => setMessageText(`💪 Group crushed Steps: ${liveStats.groupTotals?.steps} today!`)}
-                    className="glass-card rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30 hover:scale-105 transition-transform"
-                  >
-                    📊 Group Stats
-                  </button>
                 </div>
-                
-                <div className="glass-card rounded-2xl p-3 flex items-center gap-3">
-                  <button
-                    onClick={() => setShowCalloutMenu(!showCalloutMenu)}
-                    className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform relative"
-                  >
-                    <Zap className="w-5 h-5 text-primary" />
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowCalloutMenu(!showCalloutMenu)}
+                      className="glass-card rounded-full p-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      <Zap className="w-5 h-5" />
+                    </button>
                     {showCalloutMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 glass-card rounded-xl p-2 space-y-1 min-w-[120px] animate-in fade-in scale-in duration-200">
+                      <div className="absolute bottom-full mb-2 left-0 glass-card rounded-2xl p-2 space-y-1 animate-in scale-in duration-200 z-10">
                         <button
                           onClick={() => insertCallout("props")}
-                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                          className="glass-card-inner rounded-xl px-3 py-2 text-xs hover:bg-primary hover:text-primary-foreground transition-colors w-full text-left"
                         >
                           🔥 Props
                         </button>
                         <button
                           onClick={() => insertCallout("nudge")}
-                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                          className="glass-card-inner rounded-xl px-3 py-2 text-xs hover:bg-primary hover:text-primary-foreground transition-colors w-full text-left"
                         >
                           👀 Nudge
                         </button>
                         <button
                           onClick={() => insertCallout("flex")}
-                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                          className="glass-card-inner rounded-xl px-3 py-2 text-xs hover:bg-primary hover:text-primary-foreground transition-colors w-full text-left"
                         >
                           💪 Flex
                         </button>
                       </div>
                     )}
+                  </div>
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="glass-card rounded-full p-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    <Smile className="w-5 h-5" />
                   </button>
-                  
                   <input
                     type="text"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && messageText.trim() && sendMessage(messageText)}
-                    placeholder="Send a message..."
-                    className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                    onKeyDown={(e) => e.key === "Enter" && messageText.trim() && sendMessage(messageText)}
+                    placeholder="Type a message..."
+                    className="flex-1 glass-card rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background/50"
                   />
-                  
                   <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform"
-                  >
-                    <Smile className="w-5 h-5 text-primary" />
-                  </button>
-                  
-                  <button
-                    onClick={() => messageText.trim() && sendMessage(messageText)}
+                    onClick={() => sendMessage(messageText)}
                     disabled={!messageText.trim()}
                     className="bg-primary rounded-full p-2 hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-5 h-5 text-primary-foreground" />
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Friend Modal */}
+        {showAddFriendModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50" onClick={() => setShowAddFriendModal(false)}>
+            <div 
+              className="glass-card rounded-3xl p-6 w-full max-w-md animate-in zoom-in duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Add Friend</h2>
+                <button
+                  onClick={() => setShowAddFriendModal(false)}
+                  className="p-2 rounded-full hover:bg-muted transition-colors"
+                >
+                  <X className="w-5 h-5 text-foreground" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Username or Email</label>
+                  <input
+                    type="text"
+                    placeholder="@username or email@example.com"
+                    className="w-full glass-card-inner rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                
+                <div className="pt-4">
+                  <h3 className="text-sm font-bold text-foreground mb-3">Suggested Friends</h3>
+                  <div className="space-y-2">
+                    {[
+                      { id: 1, name: "Alex Chen", username: "@alexc", avatar: "🟢", mutualFriends: 3 },
+                      { id: 2, name: "Riley Park", username: "@rileyp", avatar: "🟣", mutualFriends: 5 },
+                      { id: 3, name: "Jordan Lee", username: "@jordanl", avatar: "🟡", mutualFriends: 2 },
+                    ].map((suggestion) => (
+                      <div key={suggestion.id} className="glass-card-inner rounded-2xl p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{suggestion.avatar}</span>
+                          <div>
+                            <p className="font-bold text-sm text-foreground">{suggestion.name}</p>
+                            <p className="text-xs text-muted-foreground">{suggestion.username} • {suggestion.mutualFriends} mutual</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            toast.success(`Friend request sent to ${suggestion.name}!`);
+                            setShowAddFriendModal(false);
+                          }}
+                          className="bg-primary rounded-full px-4 py-1.5 text-xs font-bold text-primary-foreground hover:scale-105 transition-transform"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
