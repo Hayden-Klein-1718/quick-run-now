@@ -154,6 +154,7 @@ const IOSMockup = () => {
   const [showChatSheet, setShowChatSheet] = useState(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [showGroupRankModal, setShowGroupRankModal] = useState(false);
+  const [selectedHomeGroup, setSelectedHomeGroup] = useState("Friends");
   
   // Mock groups data for rank selector
   const userGroups = [
@@ -162,6 +163,36 @@ const IOSMockup = () => {
     { id: "work", name: "Work Squad", rank: 3, total: 6, score: 71 },
     { id: "gym", name: "Gym Buddies", rank: 2, total: 3, score: 79 },
   ];
+
+  // Mock leaderboard data for home page based on selected group
+  const homeLeaderboards: Record<string, Array<{ id: number; name: string; score: number; rank: number; avatar: string }>> = {
+    "Friends": [
+      { id: 1, name: "Jake H.", score: 85, rank: 1, avatar: "🟢" },
+      { id: 2, name: "You", score: 76, rank: 2, avatar: "🔵" },
+      { id: 3, name: "Sarah M.", score: 72, rank: 3, avatar: "🟣" },
+      { id: 4, name: "Mike T.", score: 68, rank: 4, avatar: "🟠" },
+      { id: 5, name: "Emma L.", score: 61, rank: 5, avatar: "🟡" },
+    ],
+    "Family": [
+      { id: 1, name: "Mom", score: 92, rank: 1, avatar: "💐" },
+      { id: 2, name: "You", score: 82, rank: 2, avatar: "🔵" },
+      { id: 3, name: "Dad", score: 78, rank: 3, avatar: "👔" },
+      { id: 4, name: "Sister", score: 70, rank: 4, avatar: "🌸" },
+    ],
+    "Work Squad": [
+      { id: 1, name: "Alex C.", score: 88, rank: 1, avatar: "💼" },
+      { id: 2, name: "Jordan P.", score: 84, rank: 2, avatar: "📊" },
+      { id: 3, name: "You", score: 71, rank: 3, avatar: "🔵" },
+      { id: 4, name: "Taylor R.", score: 67, rank: 4, avatar: "💻" },
+      { id: 5, name: "Morgan L.", score: 65, rank: 5, avatar: "📱" },
+      { id: 6, name: "Casey M.", score: 59, rank: 6, avatar: "⌨️" },
+    ],
+    "Gym Buddies": [
+      { id: 1, name: "Chris P.", score: 95, rank: 1, avatar: "💪" },
+      { id: 2, name: "You", score: 79, rank: 2, avatar: "🔵" },
+      { id: 3, name: "Sam K.", score: 73, rank: 3, avatar: "🏋️" },
+    ],
+  };
 
   const TabContent = () => {
     switch (activeTab) {
@@ -184,13 +215,9 @@ const IOSMockup = () => {
     const screenTimeScore = 76; // 0-100 score
     const scoreDelta = 8; // vs yesterday
     
-    const leaderboardData = [
-      { id: 1, name: "Jake H.", score: 85, rank: 1, avatar: "🟢" },
-      { id: 2, name: "You", score: 76, rank: 2, avatar: "🔵" },
-      { id: 3, name: "Sarah M.", score: 72, rank: 3, avatar: "🟣" },
-      { id: 4, name: "Mike T.", score: 68, rank: 4, avatar: "🟠" },
-      { id: 5, name: "Emma L.", score: 61, rank: 5, avatar: "🟡" },
-    ];
+    // Get leaderboard data based on selected group
+    const leaderboardData = homeLeaderboards[selectedHomeGroup] || homeLeaderboards["Friends"];
+    const selectedGroupData = userGroups.find(g => g.name === selectedHomeGroup);
 
     return (
       <div className="h-full flex flex-col relative">
@@ -213,17 +240,17 @@ const IOSMockup = () => {
             onClick={() => setShowGroupRankModal(true)}
             className="glass-card rounded-3xl p-6 mb-6 text-center w-full hover:scale-[1.02] transition-transform"
           >
-            <p className="text-sm text-muted-foreground mb-2">Your Rank vs Friends</p>
+            <p className="text-sm text-muted-foreground mb-2">Your Rank vs {selectedHomeGroup}</p>
             <div className="flex items-center justify-center gap-3">
-              <span className="text-5xl font-bold text-foreground">#2</span>
-              <span className="text-lg text-muted-foreground">of 5</span>
+              <span className="text-5xl font-bold text-foreground">#{selectedGroupData?.rank || 2}</span>
+              <span className="text-lg text-muted-foreground">of {selectedGroupData?.total || 5}</span>
             </div>
             <p className="text-xs text-primary mt-2">Tap to view all groups</p>
           </button>
 
           {/* Leaderboard */}
           <div className="glass-card rounded-3xl p-6">
-            <h3 className="text-lg font-bold text-foreground mb-4">Friends Leaderboard</h3>
+            <h3 className="text-lg font-bold text-foreground mb-4">{selectedHomeGroup} Leaderboard</h3>
             <div className="space-y-3">
               {leaderboardData.map((person) => {
                 const getScoreColor = (score: number) => {
@@ -292,9 +319,19 @@ const IOSMockup = () => {
                   };
 
                   return (
-                    <div key={group.id} className="glass-card rounded-3xl p-5">
+                    <button 
+                      key={group.id} 
+                      onClick={() => {
+                        setSelectedHomeGroup(group.name);
+                        setShowGroupRankModal(false);
+                        toast.success(`Viewing ${group.name} leaderboard`);
+                      }}
+                      className={`glass-card rounded-3xl p-5 w-full hover:scale-[1.02] transition-transform ${
+                        selectedHomeGroup === group.name ? "border-2 border-primary" : ""
+                      }`}
+                    >
                       <div className="flex items-center justify-between mb-3">
-                        <div>
+                        <div className="text-left">
                           <h3 className="text-lg font-bold text-foreground">{group.name}</h3>
                           <p className="text-sm text-muted-foreground">
                             #{group.rank} of {group.total}
@@ -310,7 +347,7 @@ const IOSMockup = () => {
                           style={{ width: `${(group.rank / group.total) * 100}%` }}
                         />
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -1142,7 +1179,7 @@ const IOSMockup = () => {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{currentGroupInfo?.icon}</span>
                 <div className="text-left">
-                  <p className="text-xs text-muted-foreground">Current Group</p>
+                  <p className="text-xs text-muted-foreground">Current Challenge</p>
                   <p className="text-lg font-bold text-foreground">{currentGroup.name}</p>
                 </div>
               </div>
@@ -1181,13 +1218,28 @@ const IOSMockup = () => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
           <h1 className="text-2xl font-bold mb-6 text-foreground">Leader & Challenge Settings</h1>
 
-          {/* Card 1: Leader Nomination */}
+          {/* Card 1: Start Challenge */}
+          {isLeader && (
+            <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
+              <div className="relative">
+                <button
+                  onClick={handleStartChallenge}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:scale-[1.02] transition-all shadow-lg"
+                >
+                  Start Challenge
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Card 2: Leader Nomination */}
           <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="w-5 h-5 text-yellow-500" />
-                <h2 className="text-lg font-bold text-foreground">Group Leader</h2>
+                <h2 className="text-lg font-bold text-foreground">Challenge Leader</h2>
               </div>
               
               <div className="space-y-2">
@@ -1212,7 +1264,7 @@ const IOSMockup = () => {
             </div>
           </div>
 
-          {/* Card 2: Challenge Settings */}
+          {/* Card 3: Challenge Settings */}
           <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5" />
             <div className="relative">
@@ -1325,21 +1377,6 @@ const IOSMockup = () => {
               </button>
             </div>
           </div>
-
-          {/* Card 3: Start Challenge */}
-          {isLeader && (
-            <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5" />
-              <div className="relative">
-                <button
-                  onClick={handleStartChallenge}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:scale-[1.02] transition-all shadow-lg"
-                >
-                  Start Challenge
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Leaderboard for Current Group */}
           <div className="glass-card rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl border border-white/20 shadow-lg">
@@ -1840,7 +1877,7 @@ const IOSMockup = () => {
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "stats", label: "Stats", icon: BarChart3 },
-    { id: "group", label: "Group", icon: Users2 },
+    { id: "group", label: "Challenge", icon: Users2 },
     { id: "friends", label: "Friends", icon: UserPlus },
     { id: "settings", label: "Settings", icon: Settings },
   ];
