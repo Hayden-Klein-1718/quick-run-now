@@ -151,18 +151,16 @@ const IOSMockup = () => {
     leaderId: "2",
   };
 
+  const [showChatSheet, setShowChatSheet] = useState(false);
+
   const TabContent = () => {
     switch (activeTab) {
       case "home":
         return <HomeTab />;
-      case "chat":
-        return <ChatTab />;
-      case "group":
-        return <GroupTab />;
       case "stats":
         return <StatsTab />;
       case "friends":
-        return <FriendsScreenSocialV3 />;
+        return <FriendsTab />;
       case "profile":
         return <ProfileTab />;
       case "settings":
@@ -197,7 +195,7 @@ const IOSMockup = () => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Main Score Ring - Centered */}
           <div className="flex items-center justify-center py-12">
-            <ScoreRing score={screenTimeScore} delta={scoreDelta} size={300} />
+            <ScoreRing score={screenTimeScore} delta={scoreDelta} size={260} />
           </div>
 
           {/* Your Rank Card */}
@@ -249,6 +247,366 @@ const IOSMockup = () => {
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const FriendsTab = () => {
+    const leaderboardData = [
+      { id: 1, name: "Jake H.", score: 85, rank: 1, avatar: "🟢", delta: "+5" },
+      { id: 2, name: "You", score: 76, rank: 2, avatar: "🔵", delta: "+8" },
+      { id: 3, name: "Sarah M.", score: 72, rank: 3, avatar: "🟣", delta: "-2" },
+      { id: 4, name: "Mike T.", score: 68, rank: 4, avatar: "🟠", delta: "+3" },
+      { id: 5, name: "Emma L.", score: 61, rank: 5, avatar: "🟡", delta: "-1" },
+    ];
+
+    const quickChips = ["GG", "Nice run!", "Catch me if you can 😎"];
+    const reactions = ["👍", "👏", "😂", "🔥", "😴"];
+    
+    useEffect(() => {
+      if (showChatSheet) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }, [showChatSheet, messages]);
+    
+    const filterProfanity = (text: string) => {
+      const badWords = ["damn", "hell", "stupid", "idiot"];
+      let filtered = text;
+      badWords.forEach(word => {
+        const regex = new RegExp(word, "gi");
+        filtered = filtered.replace(regex, "—");
+      });
+      return filtered;
+    };
+    
+    const sendMessage = (text: string) => {
+      const filtered = filterProfanity(text);
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        authorId: "1",
+        kind: "user",
+        text: filtered,
+        createdAt: new Date().toISOString(),
+        replyToId: replyingTo?.id,
+      };
+      setMessages([...messages, newMessage]);
+      setMessageText("");
+      setReplyingTo(null);
+      toast.success("Message sent!");
+    };
+    
+    const insertCallout = (kind: "props" | "nudge" | "flex") => {
+      const member = currentGroup.members.find(m => m.id === "2");
+      const stats = liveStats.perMember["2"];
+      const templates = {
+        props: `🔥 ${member?.name} is on a ${stats?.streak}-day streak — carrying the squad!`,
+        nudge: `👀 ${member?.name} is ${Math.abs(stats?.pctBelowAvg || 0)}% below avg on Steps… time to step it up?`,
+        flex: `💪 Group crushed Steps: ${liveStats.groupTotals?.steps} today! MVP: ${member?.name}.`,
+      };
+      setMessageText(templates[kind]);
+      setShowCalloutMenu(false);
+    };
+    
+    const reactToMessage = (messageId: string, emoji: string) => {
+      setMessages(messages.map(msg => {
+        if (msg.id === messageId) {
+          const reactions = msg.reactions || {};
+          reactions[emoji] = (reactions[emoji] || 0) + 1;
+          return { ...msg, reactions };
+        }
+        return msg;
+      }));
+      setShowReactionPicker(null);
+      toast.success("Reaction added!");
+    };
+    
+    const getMember = (id: string) => currentGroup.members.find(m => m.id === id);
+    const formatTime = (iso: string) => {
+      const date = new Date(iso);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const hours = Math.floor(diff / 3600000);
+      if (hours < 1) return "just now";
+      if (hours < 24) return `${hours}h ago`;
+      return `${Math.floor(hours / 24)}d ago`;
+    };
+
+    const getScoreColor = (score: number) => {
+      if (score >= 80) return "text-green-500";
+      if (score >= 60) return "text-yellow-500";
+      return "text-red-500";
+    };
+
+    return (
+      <div className="h-full flex flex-col relative">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-primary italic">Analog</h1>
+          </div>
+        </div>
+
+        {/* Scrollable Leaderboard Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="py-6 space-y-4">
+            <h2 className="text-2xl font-bold text-foreground">Friends Leaderboard</h2>
+            
+            {leaderboardData.map((person) => (
+              <div
+                key={person.id}
+                className={`glass-card rounded-3xl p-6 transition-all hover:scale-[1.02] ${
+                  person.name === "You" ? "border-2 border-primary" : ""
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-muted-foreground w-8">
+                      #{person.rank}
+                    </span>
+                    <span className="text-4xl">{person.avatar}</span>
+                    <div>
+                      <p className={`font-bold text-lg ${
+                        person.name === "You" ? "text-primary" : "text-foreground"
+                      }`}>
+                        {person.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {person.delta.startsWith("+") ? "▲" : "▼"} {person.delta} vs yesterday
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`text-3xl font-bold ${getScoreColor(person.score)}`}>
+                    {person.score}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Floating Action Button (FAB) - Chat */}
+        <button
+          onClick={() => setShowChatSheet(true)}
+          className="fixed bottom-28 right-8 w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40"
+          style={{ bottom: 'calc(88px + env(safe-area-inset-bottom))' }}
+        >
+          <MessageCircle className="w-6 h-6 text-primary-foreground" />
+        </button>
+
+        {/* Bottom Sheet - Group Chat */}
+        {showChatSheet && (
+          <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowChatSheet(false)}>
+            <div 
+              className="w-full bg-background rounded-t-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300"
+              style={{ height: '70vh' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Sheet Header with Drag Handle */}
+              <div className="flex-shrink-0 px-6 pt-4 pb-2 border-b border-border">
+                <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-4" />
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-foreground">Group Chat</h2>
+                  <button
+                    onClick={() => setShowChatSheet(false)}
+                    className="p-2 rounded-full hover:bg-muted transition-colors"
+                  >
+                    <X className="w-5 h-5 text-foreground" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Message List - Scrollable */}
+              <div 
+                className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-3"
+                style={{ 
+                  WebkitOverflowScrolling: 'touch',
+                  paddingBottom: '140px'
+                }}
+              >
+                {messages.map((msg) => {
+                  const member = msg.authorId ? getMember(msg.authorId) : null;
+                  const isMe = msg.authorId === "1";
+                  const replyTo = msg.replyToId ? messages.find(m => m.id === msg.replyToId) : null;
+                  
+                  if (msg.kind === "system") {
+                    return (
+                      <div key={msg.id} className="flex justify-center">
+                        <div className="glass-card rounded-xl px-4 py-2 max-w-[80%]">
+                          <p className="text-xs text-muted-foreground text-center">{msg.text}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      {!isMe && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm flex-shrink-0">
+                          {member?.avatar}
+                        </div>
+                      )}
+                      <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%]`}>
+                        {!isMe && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs font-bold text-foreground">{member?.name}</p>
+                            {msg.authorId === currentGroup.leaderId && (
+                              <Crown className="w-3 h-3 text-primary" />
+                            )}
+                          </div>
+                        )}
+                        {replyTo && (
+                          <div className="glass-card-inner rounded-lg px-3 py-1.5 mb-1 max-w-full">
+                            <p className="text-[10px] text-muted-foreground">Replying to {getMember(replyTo.authorId!)?.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{replyTo.text}</p>
+                          </div>
+                        )}
+                        <div
+                          className={`rounded-2xl px-4 py-2 ${
+                            isMe ? "bg-primary text-primary-foreground" : "glass-card-inner"
+                          } relative`}
+                          onClick={() => setShowReactionPicker(msg.id)}
+                        >
+                          <p className={`text-sm ${isMe ? "text-primary-foreground" : "text-foreground"}`}>{msg.text}</p>
+                          {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                              {Object.entries(msg.reactions).map(([emoji, count]) => (
+                                <div
+                                  key={emoji}
+                                  className="glass-card rounded-full px-2 py-0.5 text-xs flex items-center gap-1"
+                                >
+                                  <span>{emoji}</span>
+                                  <span className="text-[10px] font-bold">{count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">{formatTime(msg.createdAt)}</p>
+                        
+                        {showReactionPicker === msg.id && (
+                          <div className="glass-card rounded-2xl p-2 flex gap-2 mt-2 animate-in scale-in duration-200">
+                            {reactions.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => reactToMessage(msg.id, emoji)}
+                                className="text-xl hover:scale-125 transition-transform"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => {
+                                setReplyingTo(msg);
+                                setShowReactionPicker(null);
+                              }}
+                              className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform"
+                            >
+                              <Reply className="w-4 h-4 text-primary" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Composer Bar - Fixed at bottom of sheet */}
+              <div className="flex-shrink-0 px-6 py-3 border-t border-border bg-background">
+                {replyingTo && (
+                  <div className="glass-card rounded-xl p-2 mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Reply className="w-3 h-3 text-primary" />
+                      <p className="text-xs text-muted-foreground">
+                        Replying to {getMember(replyingTo.authorId!)?.name}: "{replyingTo.text.slice(0, 30)}..."
+                      </p>
+                    </div>
+                    <button onClick={() => setReplyingTo(null)}>
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
+                
+                <div className="flex gap-2 mb-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {quickChips.map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => setMessageText(chip)}
+                      className="glass-card-inner rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap hover:scale-105 transition-transform"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setMessageText(`💪 Group crushed Steps: ${liveStats.groupTotals?.steps} today!`)}
+                    className="glass-card rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30 hover:scale-105 transition-transform"
+                  >
+                    📊 Group Stats
+                  </button>
+                </div>
+                
+                <div className="glass-card rounded-2xl p-3 flex items-center gap-3">
+                  <button
+                    onClick={() => setShowCalloutMenu(!showCalloutMenu)}
+                    className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform relative"
+                  >
+                    <Zap className="w-5 h-5 text-primary" />
+                    {showCalloutMenu && (
+                      <div className="absolute bottom-full left-0 mb-2 glass-card rounded-xl p-2 space-y-1 min-w-[120px] animate-in fade-in scale-in duration-200">
+                        <button
+                          onClick={() => insertCallout("props")}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                        >
+                          🔥 Props
+                        </button>
+                        <button
+                          onClick={() => insertCallout("nudge")}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                        >
+                          👀 Nudge
+                        </button>
+                        <button
+                          onClick={() => insertCallout("flex")}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 text-sm font-semibold"
+                        >
+                          💪 Flex
+                        </button>
+                      </div>
+                    )}
+                  </button>
+                  
+                  <input
+                    type="text"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && messageText.trim() && sendMessage(messageText)}
+                    placeholder="Send a message..."
+                    className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                  />
+                  
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="glass-card-inner rounded-full p-2 hover:scale-110 transition-transform"
+                  >
+                    <Smile className="w-5 h-5 text-primary" />
+                  </button>
+                  
+                  <button
+                    onClick={() => messageText.trim() && sendMessage(messageText)}
+                    disabled={!messageText.trim()}
+                    className="bg-primary rounded-full p-2 hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-5 h-5 text-primary-foreground" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1289,10 +1647,9 @@ const IOSMockup = () => {
 
   const tabs = [
     { id: "home", label: "Home", icon: Home },
-    { id: "group", label: "Group", icon: Users2 },
-    { id: "stats", label: "Stats", icon: BarChart3 },
     { id: "friends", label: "Friends", icon: UserPlus },
-    { id: "chat", label: "Chat", icon: MessageCircle },
+    { id: "stats", label: "Stats", icon: BarChart3 },
+    { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 

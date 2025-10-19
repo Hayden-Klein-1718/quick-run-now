@@ -7,7 +7,7 @@ interface ScoreRingProps {
   size?: number;
 }
 
-export const ScoreRing = ({ score, delta, size = 300 }: ScoreRingProps) => {
+export const ScoreRing = ({ score, delta, size = 260 }: ScoreRingProps) => {
   const [showDetail, setShowDetail] = useState(false);
   
   // Color based on score
