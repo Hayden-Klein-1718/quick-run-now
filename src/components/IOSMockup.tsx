@@ -3,6 +3,7 @@ import { Home, MessageCircle, BarChart3, User, Settings, Moon, Sun, ChevronRight
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { FriendsScreenSocialV3 } from "./FriendsScreenSocialV3";
+import { ScoreRing } from "./ScoreRing";
 
 type Member = { id: string; name: string; avatar: string };
 type ChallengeSettings = {
@@ -172,272 +173,81 @@ const IOSMockup = () => {
   };
 
   const HomeTab = () => {
-    const groups = [
-      { name: "Friends", icon: "👥", members: 8 },
-      { name: "Family", icon: "👨‍👩‍👧‍👦", members: 5 },
-      { name: "Work", icon: "💼", members: 12 },
+    const screenTimeScore = 76; // 0-100 score
+    const scoreDelta = 8; // vs yesterday
+    
+    const leaderboardData = [
+      { id: 1, name: "Jake H.", score: 85, rank: 1, avatar: "🟢" },
+      { id: 2, name: "You", score: 76, rank: 2, avatar: "🔵" },
+      { id: 3, name: "Sarah M.", score: 72, rank: 3, avatar: "🟣" },
+      { id: 4, name: "Mike T.", score: 68, rank: 4, avatar: "🟠" },
+      { id: 5, name: "Emma L.", score: 61, rank: 5, avatar: "🟡" },
     ];
 
-    const leaderboardData = {
-      Friends: [
-        { id: 1, name: "Jake H.", time: 15.2, rank: 1, improvement: -30, avatar: "🟢" },
-        { id: 2, name: "You", time: 18.5, rank: 2, improvement: -24, avatar: "🔵" },
-        { id: 3, name: "Sarah M.", time: 22.7, rank: 3, improvement: 17, avatar: "🟣" },
-        { id: 4, name: "Mike T.", time: 25.3, rank: 4, improvement: -6, avatar: "🟠" },
-        { id: 5, name: "Emma L.", time: 28.1, rank: 5, improvement: 9, avatar: "🟡" },
-      ],
-      Family: [
-        { id: 1, name: "You", time: 18.5, rank: 1, improvement: -24, avatar: "🔵" },
-        { id: 2, name: "Mom", time: 22.3, rank: 2, improvement: -12, avatar: "💚" },
-        { id: 3, name: "Dad", time: 25.8, rank: 3, improvement: 5, avatar: "💙" },
-        { id: 4, name: "Sister", time: 31.2, rank: 4, improvement: -8, avatar: "💜" },
-      ],
-      Work: [
-        { id: 1, name: "Alex K.", time: 12.4, rank: 1, improvement: -35, avatar: "🟢" },
-        { id: 2, name: "Chris P.", time: 16.8, rank: 2, improvement: -28, avatar: "🟠" },
-        { id: 3, name: "You", time: 18.5, rank: 3, improvement: -24, avatar: "🔵" },
-        { id: 4, name: "Taylor B.", time: 21.9, rank: 4, improvement: -15, avatar: "🟣" },
-        { id: 5, name: "Jordan S.", time: 24.2, rank: 5, improvement: 8, avatar: "🟡" },
-      ],
-    };
-
-    const data = leaderboardData[selectedGroup as keyof typeof leaderboardData];
-    const topThree = data.slice(0, 3);
-    const restOfLeaderboard = data.slice(3);
-    const maxTime = Math.max(...data.map(p => p.time));
-    const currentGroup = groups.find(g => g.name === selectedGroup);
-    const userRank = data.find(p => p.name === "You")?.rank || "-";
-
     return (
-      <div className="h-full flex flex-col">
-        {/* Group Selector Header - Fixed */}
+      <div className="h-full flex flex-col relative">
+        {/* Fixed Header */}
         <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-background">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-primary italic">Analog</h1>
-          </div>
-          <div className="relative">
-            <button
-              onClick={() => setShowGroupSelector(!showGroupSelector)}
-              className="w-full glass-card rounded-[20px] p-4 flex items-center justify-between hover:scale-[1.02] transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{currentGroup?.icon}</span>
-                <div className="text-left">
-                  <p className="text-xs text-muted-foreground">Current Group</p>
-                  <p className="text-lg font-bold text-foreground">{selectedGroup}</p>
-                </div>
-              </div>
-              <ChevronRight className={`w-5 h-5 text-primary transition-transform ${showGroupSelector ? "rotate-90" : ""}`} />
-            </button>
-
-            {/* Group Selector Dropdown */}
-            {showGroupSelector && (
-              <div className="absolute top-full left-0 right-0 mt-2 glass-card rounded-[20px] p-3 space-y-2 z-50 animate-in fade-in duration-200">
-                {groups.map((group) => (
-                  <button
-                    key={group.name}
-                    onClick={() => {
-                      setSelectedGroup(group.name);
-                      setShowGroupSelector(false);
-                    }}
-                    className={`w-full rounded-[15px] p-3 flex items-center gap-3 transition-all hover:scale-[1.02] ${
-                      selectedGroup === group.name
-                        ? "bg-primary/20 border-2 border-primary"
-                        : "glass-card-inner"
-                    }`}
-                  >
-                    <span className="text-2xl">{group.icon}</span>
-                    <div className="text-left flex-1">
-                      <p className="font-bold text-foreground">{group.name}</p>
-                      <p className="text-xs text-muted-foreground">{group.members} members</p>
-                    </div>
-                    {selectedGroup === group.name && (
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {/* Challenge Info Banner */}
-          <div className="glass-card rounded-[20px] p-4 mb-6 bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Challenge Ends In</p>
-                <p className="text-lg font-bold text-foreground">3 days</p>
-              </div>
-              <div className="h-8 w-px bg-border" />
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Prize Pool</p>
-                <p className="text-lg font-bold text-foreground">$250</p>
-              </div>
-              <div className="h-8 w-px bg-border" />
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Participants</p>
-                <p className="text-lg font-bold text-foreground">{data.length}</p>
-              </div>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {/* Main Score Ring - Centered */}
+          <div className="flex items-center justify-center py-12">
+            <ScoreRing score={screenTimeScore} delta={scoreDelta} size={300} />
+          </div>
+
+          {/* Your Rank Card */}
+          <div className="glass-card rounded-3xl p-6 mb-6 text-center">
+            <p className="text-sm text-muted-foreground mb-2">Your Rank vs Friends</p>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-5xl font-bold text-foreground">#2</span>
+              <span className="text-lg text-muted-foreground">of 5</span>
             </div>
           </div>
 
-          {/* Your Stats Card */}
-          <div className="glass-card rounded-[20px] p-5 mb-6 bg-gradient-to-br from-primary to-accent relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/10" />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-xs text-white/80 mb-1">Your Screen Time</p>
-                  <p className="text-4xl font-bold text-white">18.5h</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-white/80 mb-1">Your Rank</p>
-                  <p className="text-4xl font-bold text-white">#{userRank}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-white rounded-full transition-all duration-500"
-                    style={{ width: `${((maxTime - 18.5) / maxTime) * 100}%` }}
-                  />
-                </div>
-                <p className="text-sm text-white/90 font-semibold whitespace-nowrap">↓ 24%</p>
-              </div>
-            </div>
-          </div>
+          {/* Leaderboard */}
+          <div className="glass-card rounded-3xl p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">Friends Leaderboard</h3>
+            <div className="space-y-3">
+              {leaderboardData.map((person) => {
+                const getScoreColor = (score: number) => {
+                  if (score >= 80) return "text-green-500";
+                  if (score >= 60) return "text-yellow-500";
+                  return "text-red-500";
+                };
 
-          {/* Top 3 Podium */}
-          <div className="mb-6">
-            <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Top Performers</h3>
-            <div className="flex items-end justify-center gap-2 mb-4">
-              {/* 2nd Place */}
-              {topThree[1] && (
-                <div className="flex-1 flex flex-col items-center">
-                  <div className={`glass-card rounded-[20px] p-4 w-full mb-2 ${
-                    topThree[1].name === "You" ? "border-2 border-primary" : ""
-                  }`}>
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{topThree[1].avatar}</div>
-                      <div className="text-3xl mb-1">🥈</div>
-                      <p className={`font-bold text-sm ${
-                        topThree[1].name === "You" ? "text-primary" : "text-foreground"
-                      }`}>
-                        {topThree[1].name}
-                      </p>
-                      <p className="text-2xl font-bold text-foreground mt-1">{topThree[1].time}h</p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        topThree[1].improvement < 0 ? "text-green-500" : "text-red-500"
-                      }`}>
-                        {topThree[1].improvement < 0 ? "↓" : "↑"} {Math.abs(topThree[1].improvement)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 1st Place */}
-              {topThree[0] && (
-                <div className="flex-1 flex flex-col items-center">
-                  <div className={`glass-card rounded-[20px] p-4 w-full mb-2 ${
-                    topThree[0].name === "You" ? "border-2 border-primary" : "border-2 border-yellow-500/50"
-                  } bg-gradient-to-br from-yellow-500/10 to-orange-500/10`}>
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{topThree[0].avatar}</div>
-                      <div className="text-3xl mb-1">🥇</div>
-                      <p className={`font-bold text-sm ${
-                        topThree[0].name === "You" ? "text-primary" : "text-foreground"
-                      }`}>
-                        {topThree[0].name}
-                      </p>
-                      <p className="text-2xl font-bold text-foreground mt-1">{topThree[0].time}h</p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        topThree[0].improvement < 0 ? "text-green-500" : "text-red-500"
-                      }`}>
-                        {topThree[0].improvement < 0 ? "↓" : "↑"} {Math.abs(topThree[0].improvement)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 3rd Place */}
-              {topThree[2] && (
-                <div className="flex-1 flex flex-col items-center">
-                  <div className={`glass-card rounded-[20px] p-4 w-full mb-2 ${
-                    topThree[2].name === "You" ? "border-2 border-primary" : ""
-                  }`}>
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{topThree[2].avatar}</div>
-                      <div className="text-3xl mb-1">🥉</div>
-                      <p className={`font-bold text-sm ${
-                        topThree[2].name === "You" ? "text-primary" : "text-foreground"
-                      }`}>
-                        {topThree[2].name}
-                      </p>
-                      <p className="text-2xl font-bold text-foreground mt-1">{topThree[2].time}h</p>
-                      <p className={`text-xs font-semibold mt-1 ${
-                        topThree[2].improvement < 0 ? "text-green-500" : "text-red-500"
-                      }`}>
-                        {topThree[2].improvement < 0 ? "↓" : "↑"} {Math.abs(topThree[2].improvement)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Rest of Leaderboard */}
-          {restOfLeaderboard.length > 0 && (
-            <>
-              <h3 className="text-sm text-muted-foreground mb-4 font-semibold">Full Rankings</h3>
-              <div className="space-y-3">
-                {restOfLeaderboard.map((person) => (
+                return (
                   <div
                     key={person.id}
-                    className={`glass-card rounded-[20px] p-4 transition-all hover:scale-[1.02] ${
+                    className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
                       person.name === "You"
-                        ? "bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary"
-                        : ""
+                        ? "glass-card-inner border-2 border-primary"
+                        : "glass-card-inner"
                     }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col items-center min-w-[48px]">
-                        <span className="text-3xl mb-1">{person.avatar}</span>
-                        <span className="text-xs font-bold text-muted-foreground">#{person.rank}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className={`font-bold text-base truncate ${
-                            person.name === "You" ? "text-primary" : "text-foreground"
-                          }`}>
-                            {person.name}
-                          </p>
-                          <p className="text-2xl font-bold text-foreground ml-2">{person.time}h</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
-                              style={{ width: `${(person.time / maxTime) * 100}%` }}
-                            />
-                          </div>
-                          <p className={`text-xs font-semibold whitespace-nowrap ${
-                            person.improvement < 0 ? "text-green-500" : "text-red-500"
-                          }`}>
-                            {person.improvement < 0 ? "↓" : "↑"} {Math.abs(person.improvement)}%
-                          </p>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl font-bold text-muted-foreground w-6">
+                        #{person.rank}
+                      </span>
+                      <span className="text-3xl">{person.avatar}</span>
+                      <span className={`font-bold ${
+                        person.name === "You" ? "text-primary" : "text-foreground"
+                      }`}>
+                        {person.name}
+                      </span>
                     </div>
+                    <span className={`text-2xl font-bold ${getScoreColor(person.score)}`}>
+                      {person.score}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     );
