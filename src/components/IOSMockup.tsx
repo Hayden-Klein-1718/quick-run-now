@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { ScoreRing } from "./ScoreRing";
 import { useAppStore } from "@/state/store";
-import { computeScore, scoreColor, computeDelta } from "@/utils/score";
+import { computeScore, scoreColor } from "@/utils/score";
 
 const IOSMockup = () => {
   const { theme, setTheme } = useTheme();
@@ -1328,8 +1328,9 @@ const IOSMockup = () => {
               </div>
             </div>
           </div>
+        </div>
 
-          <h2 className="text-2xl font-bold text-foreground mb-6">Settings</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-6">Settings</h2>
           <div className="space-y-4">
             <div className="glass-card rounded-[20px] p-5">
               <div className="flex items-center justify-between">
